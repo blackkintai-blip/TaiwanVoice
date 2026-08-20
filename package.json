@@ -1,0 +1,35 @@
+{
+  "name": "ty-bopomo",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "npm run build:dict && npm run build:icons && npm run typecheck && vite build",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "build:dict": "node scripts/build-dict.mjs",
+    "build:icons": "node scripts/gen-icons.mjs"
+  },
+  "dependencies": {
+    "idb": "^8.0.3",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/node": "^26.2.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@vitejs/plugin-react": "^6.1.0",
+    "fake-indexeddb": "^6.2.5",
+    "jsdom": "^30.0.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.2",
+    "vite-plugin-pwa": "^1.3.0",
+    "vitest": "^4.1.11"
+  }
+}
