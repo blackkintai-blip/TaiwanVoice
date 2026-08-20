@@ -10,3 +10,10 @@ body {
 }
 .app { display: flex; flex-direction: column; height: 100%; }
 .app__content { flex: 1; overflow: auto; }
+
+.tabbar { display: flex; border-top: 1px solid #333; }
+.tabbar__item {
+  flex: 1; padding: 12px 0; background: none; border: none; color: #999;
+  font-size: 14px;
+}
+.tabbar__item--active { color: #fff; font-weight: bold; }
