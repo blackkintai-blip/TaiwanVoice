@@ -6,7 +6,7 @@ test('starts on the list tab and switches to listen on tap', () => {
   render(<App />);
   expect(screen.getByText('一覧')).toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: '聞く' }));
-  expect(screen.getByText('聞く画面')).toBeInTheDocument();
+  expect(screen.getByText('カードがありません')).toBeInTheDocument();
 });
 
 test('all four tabs are present', () => {

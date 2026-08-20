@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { TabBar, type Tab } from './ui/TabBar';
 import { ListScreen } from './ui/screens/ListScreen';
 import { CardEditScreen } from './ui/screens/CardEditScreen';
+import { ListenScreen } from './ui/screens/ListenScreen';
 
 export default function App() {
   const [tab, setTab] = useState<Tab>('list');
@@ -16,7 +17,7 @@ export default function App() {
           ) : (
             <CardEditScreen cardId={editingCardId} onDone={() => setEditingCardId('closed')} />
           ))}
-        {tab === 'listen' && <div>聞く画面</div>}
+        {tab === 'listen' && <ListenScreen />}
         {tab === 'quiz' && <div>出題画面</div>}
         {tab === 'settings' && <div>設定画面</div>}
       </div>

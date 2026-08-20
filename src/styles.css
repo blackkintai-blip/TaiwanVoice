@@ -17,3 +17,9 @@ body {
   font-size: 14px;
 }
 .tabbar__item--active { color: #fff; font-weight: bold; }
+
+.listen-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; background: #000; gap: 24px; }
+.listen-screen__header { display: flex; gap: 12px; align-items: center; color: #888; }
+.listen-screen__play { width: 140px; height: 140px; border-radius: 50%; font-size: 48px; background: #1a1a20; color: #fff; border: 2px solid #333; }
+.listen-screen__controls { display: flex; gap: 24px; font-size: 24px; }
+.listen-screen__controls button { background: none; border: none; color: #fff; }
