@@ -1,13 +1,21 @@
 import { useState } from 'react';
 import { TabBar, type Tab } from './ui/TabBar';
+import { ListScreen } from './ui/screens/ListScreen';
+import { CardEditScreen } from './ui/screens/CardEditScreen';
 
 export default function App() {
   const [tab, setTab] = useState<Tab>('list');
+  const [editingCardId, setEditingCardId] = useState<string | null | 'closed'>('closed');
 
   return (
     <div className="app">
       <div className="app__content">
-        {tab === 'list' && <div>一覧画面</div>}
+        {tab === 'list' &&
+          (editingCardId === 'closed' ? (
+            <ListScreen onOpenCard={setEditingCardId} />
+          ) : (
+            <CardEditScreen cardId={editingCardId} onDone={() => setEditingCardId('closed')} />
+          ))}
         {tab === 'listen' && <div>聞く画面</div>}
         {tab === 'quiz' && <div>出題画面</div>}
         {tab === 'settings' && <div>設定画面</div>}

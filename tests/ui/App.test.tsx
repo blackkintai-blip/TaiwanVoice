@@ -1,4 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
+import 'fake-indexeddb/auto';
 import App from '../../src/App';
 
 test('starts on the list tab and switches to listen on tap', () => {
