@@ -3,6 +3,7 @@ import { TabBar, type Tab } from './ui/TabBar';
 import { ListScreen } from './ui/screens/ListScreen';
 import { CardEditScreen } from './ui/screens/CardEditScreen';
 import { ListenScreen } from './ui/screens/ListenScreen';
+import { QuizScreen } from './ui/screens/QuizScreen';
 
 export default function App() {
   const [tab, setTab] = useState<Tab>('list');
@@ -18,7 +19,7 @@ export default function App() {
             <CardEditScreen cardId={editingCardId} onDone={() => setEditingCardId('closed')} />
           ))}
         {tab === 'listen' && <ListenScreen />}
-        {tab === 'quiz' && <div>出題画面</div>}
+        {tab === 'quiz' && <QuizScreen />}
         {tab === 'settings' && <div>設定画面</div>}
       </div>
       <TabBar active={tab} onChange={setTab} />
