@@ -4,6 +4,7 @@ import { ListScreen } from './ui/screens/ListScreen';
 import { CardEditScreen } from './ui/screens/CardEditScreen';
 import { ListenScreen } from './ui/screens/ListenScreen';
 import { QuizScreen } from './ui/screens/QuizScreen';
+import { SettingsScreen } from './ui/screens/SettingsScreen';
 
 export default function App() {
   const [tab, setTab] = useState<Tab>('list');
@@ -20,7 +21,7 @@ export default function App() {
           ))}
         {tab === 'listen' && <ListenScreen />}
         {tab === 'quiz' && <QuizScreen />}
-        {tab === 'settings' && <div>設定画面</div>}
+        {tab === 'settings' && <SettingsScreen />}
       </div>
       <TabBar active={tab} onChange={setTab} />
     </div>
