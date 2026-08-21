@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { Card } from '../../core/types';
 import { grade, type Grade } from '../../core/srs';
-import { listCards, putCard } from '../../data/db';
+import { listCards, listTags, putCard } from '../../data/db';
 import { SpeechQueue, pickTaiwaneseVoice } from '../../audio/speech';
 import { SpeakerIcon } from '../icons';
 
@@ -45,13 +45,25 @@ function speakText(hanzi: string) {
 export function QuizScreen() {
   const [direction, setDirection] = useState<Direction>('hanziToMeaning');
   const [scope, setScope] = useState<Scope>('both');
+  const [tags, setTags] = useState<string[]>([]);
+  const [activeTags, setActiveTags] = useState<string[]>([]);
   const [items, setItems] = useState<QuizItem[] | null>(null);
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
 
+  useEffect(() => {
+    listTags().then(setTags);
+  }, []);
+
+  function toggleTag(tag: string) {
+    setActiveTags((tags) => (tags.includes(tag) ? tags.filter((t) => t !== tag) : [...tags, tag]));
+  }
+
   function startSession() {
     listCards().then((all) => {
-      setItems(buildItems(all, scope));
+      const filtered =
+        activeTags.length === 0 ? all : all.filter((c) => activeTags.some((t) => c.tags.includes(t)));
+      setItems(buildItems(filtered, scope));
       setIndex(0);
       setFlipped(false);
     });
@@ -141,6 +153,19 @@ export function QuizScreen() {
           />
           例文のみ
         </label>
+        {tags.length > 0 && (
+          <div className="quiz-screen__tags">
+            {tags.map((tag) => (
+              <button
+                key={tag}
+                className={activeTags.includes(tag) ? 'pill pill--toggled' : 'pill'}
+                onClick={() => toggleTag(tag)}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+        )}
         <button className="primary-btn" onClick={startSession} style={{ marginTop: 8 }}>
           開始
         </button>

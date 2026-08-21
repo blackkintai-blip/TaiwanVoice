@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Card } from '../../core/types';
-import { listCards } from '../../data/db';
+import { listCards, listTags } from '../../data/db';
 import { pickTaiwaneseVoice, playRepeated } from '../../audio/speech';
 import { loadPlaybackSettings } from '../../data/settings';
 import { EyeIcon, NextIcon, PlayIcon, PrevIcon, ReplayIcon } from '../icons';
@@ -19,6 +19,8 @@ function shuffled<T>(items: T[]): T[] {
 
 export function ListenScreen() {
   const [cards, setCards] = useState<Card[]>([]);
+  const [tags, setTags] = useState<string[]>([]);
+  const [activeTags, setActiveTags] = useState<string[]>([]);
   const [order, setOrder] = useState<Order>('sequential');
   const [scope, setScope] = useState<Scope>('both');
   const [index, setIndex] = useState(0);
@@ -29,11 +31,21 @@ export function ListenScreen() {
 
   useEffect(() => {
     listCards().then(setCards);
+    listTags().then(setTags);
   }, []);
 
+  function toggleTag(tag: string) {
+    setActiveTags((tags) => (tags.includes(tag) ? tags.filter((t) => t !== tag) : [...tags, tag]));
+  }
+
+  const byTag = useMemo(
+    () => (activeTags.length === 0 ? cards : cards.filter((c) => activeTags.some((t) => c.tags.includes(t)))),
+    [cards, activeTags],
+  );
+
   const scoped = useMemo(
-    () => (scope === 'exampleOnly' ? cards.filter((c) => c.examples.length > 0) : cards),
-    [cards, scope],
+    () => (scope === 'exampleOnly' ? byTag.filter((c) => c.examples.length > 0) : byTag),
+    [byTag, scope],
   );
 
   const ordered = useMemo(
@@ -56,7 +68,7 @@ export function ListenScreen() {
     setPlayingIndex(0);
     setIndex(0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scope, order]);
+  }, [scope, order, activeTags]);
 
   function play() {
     if (!current) return;
@@ -104,7 +116,14 @@ export function ListenScreen() {
   }
 
   if (ordered.length === 0) {
-    const message = scope === 'exampleOnly' && cards.length > 0 ? '例文のあるカードがありません' : 'カードがありません';
+    const message =
+      cards.length === 0
+        ? 'カードがありません'
+        : activeTags.length > 0
+          ? '選択したラベルに一致するカードがありません'
+          : scope === 'exampleOnly'
+            ? '例文のあるカードがありません'
+            : 'カードがありません';
     return <div className="listen-screen listen-screen--empty">{message}</div>;
   }
 
@@ -148,6 +167,20 @@ export function ListenScreen() {
           例文のみ
         </button>
       </div>
+
+      {tags.length > 0 && (
+        <div className="listen-screen__tags">
+          {tags.map((tag) => (
+            <button
+              key={tag}
+              className={activeTags.includes(tag) ? 'pill pill--toggled' : 'pill'}
+              onClick={() => toggleTag(tag)}
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="listen-screen__stage">
         <button className="listen-screen__play" onClick={play} aria-label="再生">
