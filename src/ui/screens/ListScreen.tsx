@@ -68,9 +68,11 @@ export function ListScreen({ onOpenCard }: { onOpenCard: (id: string | null) => 
           {filtered.map((card) => (
             <li key={card.id} onClick={() => onOpenCard(card.id)} onDoubleClick={() => speak(card.hanzi)}>
               <div className="list-screen__main">
-                <div className="list-screen__hanzi">{card.hanzi}</div>
-                <div className="list-screen__zhuyin">{card.zhuyin}</div>
-                <div className="list-screen__meaning">{card.meaning}</div>
+                <div className="list-screen__row">
+                  <div className="list-screen__hanzi">{card.hanzi}</div>
+                  <div className="list-screen__zhuyin">{card.zhuyin}</div>
+                  <div className="list-screen__meaning">{card.meaning}</div>
+                </div>
                 {card.tags.length > 0 && (
                   <div className="list-screen__card-tags">
                     {card.tags.map((tag) => (
