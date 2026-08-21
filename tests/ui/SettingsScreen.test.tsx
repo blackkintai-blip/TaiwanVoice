@@ -51,7 +51,9 @@ test('reapplying the dictionary fills in zhuyin for unedited cards', async () =>
   mockSynth([{ lang: 'zh-TW', name: 'x', voiceURI: 'x', default: false, localService: true } as SpeechSynthesisVoice]);
   await putCard(makeCard());
   render(<SettingsScreen />);
-  fireEvent.click(await screen.findByText('辞書を再適用'));
+  const reapplyButton = await screen.findByText('辞書を再適用');
+  await waitFor(() => expect(reapplyButton).not.toBeDisabled());
+  fireEvent.click(reapplyButton);
   await waitFor(async () => {
     const saved = await getCard('a');
     expect(saved!.zhuyin).toBe('ㄋㄧˇㄏㄠˇ');

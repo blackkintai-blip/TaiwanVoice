@@ -81,7 +81,7 @@ export function SettingsScreen() {
       </section>
 
       <section>
-        <button className="ghost-btn" onClick={reapplyDict}>
+        <button className="ghost-btn" onClick={reapplyDict} disabled={!dict}>
           辞書を再適用
         </button>
       </section>
