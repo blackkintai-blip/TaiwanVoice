@@ -6,6 +6,7 @@ import { loadPlaybackSettings } from '../../data/settings';
 import { EyeIcon, NextIcon, PlayIcon, PrevIcon, ReplayIcon } from '../icons';
 
 type Order = 'sequential' | 'random';
+type Scope = 'both' | 'wordOnly' | 'exampleOnly';
 
 function shuffled<T>(items: T[]): T[] {
   const copy = [...items];
@@ -19,6 +20,7 @@ function shuffled<T>(items: T[]): T[] {
 export function ListenScreen() {
   const [cards, setCards] = useState<Card[]>([]);
   const [order, setOrder] = useState<Order>('sequential');
+  const [scope, setScope] = useState<Scope>('both');
   const [index, setIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
   const [continuous, setContinuous] = useState(false);
@@ -29,10 +31,15 @@ export function ListenScreen() {
     listCards().then(setCards);
   }, []);
 
+  const scoped = useMemo(
+    () => (scope === 'exampleOnly' ? cards.filter((c) => c.examples.length > 0) : cards),
+    [cards, scope],
+  );
+
   const ordered = useMemo(
-    () => (order === 'random' ? shuffled(cards) : cards),
+    () => (order === 'random' ? shuffled(scoped) : scoped),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [cards, order],
+    [scoped, order],
   );
 
   const current = ordered[index];
@@ -44,13 +51,25 @@ export function ListenScreen() {
 
   useEffect(() => stopPlayback, []);
 
+  useEffect(() => {
+    stopPlayback();
+    setPlayingIndex(0);
+    setIndex(0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scope, order]);
+
   function play() {
     if (!current) return;
     stopPlayback();
     setPlayingIndex(0);
     const settings = loadPlaybackSettings();
     const voice = pickTaiwaneseVoice(window.speechSynthesis.getVoices());
-    const items = [current.hanzi, ...current.examples.map((e) => e.hanzi)];
+    const items =
+      scope === 'wordOnly'
+        ? [current.hanzi]
+        : scope === 'exampleOnly'
+          ? current.examples.map((e) => e.hanzi)
+          : [current.hanzi, ...current.examples.map((e) => e.hanzi)];
     sessionRef.current = playRepeated(window.speechSynthesis, voice, items, {
       rate: settings.rate,
       repeatCount: settings.repeatCount,
@@ -85,7 +104,8 @@ export function ListenScreen() {
   }
 
   if (ordered.length === 0) {
-    return <div className="listen-screen listen-screen--empty">カードがありません</div>;
+    const message = scope === 'exampleOnly' && cards.length > 0 ? '例文のあるカードがありません' : 'カードがありません';
+    return <div className="listen-screen listen-screen--empty">{message}</div>;
   }
 
   return (
@@ -114,6 +134,21 @@ export function ListenScreen() {
         </div>
       </div>
 
+      <div className="listen-screen__scope">
+        <button className={scope === 'both' ? 'pill pill--toggled' : 'pill'} onClick={() => setScope('both')}>
+          両方
+        </button>
+        <button className={scope === 'wordOnly' ? 'pill pill--toggled' : 'pill'} onClick={() => setScope('wordOnly')}>
+          単語のみ
+        </button>
+        <button
+          className={scope === 'exampleOnly' ? 'pill pill--toggled' : 'pill'}
+          onClick={() => setScope('exampleOnly')}
+        >
+          例文のみ
+        </button>
+      </div>
+
       <div className="listen-screen__stage">
         <button className="listen-screen__play" onClick={play} aria-label="再生">
           <PlayIcon />
@@ -122,7 +157,12 @@ export function ListenScreen() {
         {revealed && current ? (
           <div className="listen-screen__reveal">
             {(() => {
-              const item = playingIndex === 0 ? current : current.examples[playingIndex - 1];
+              const item =
+                scope === 'exampleOnly'
+                  ? current.examples[playingIndex]
+                  : playingIndex === 0
+                    ? current
+                    : current.examples[playingIndex - 1];
               if (!item) return null;
               return (
                 <>

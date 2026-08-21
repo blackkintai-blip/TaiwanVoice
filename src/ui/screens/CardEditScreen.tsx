@@ -158,16 +158,24 @@ export function CardEditScreen({ cardId, onDone }: { cardId: string | null; onDo
       <h3>例文</h3>
       {card.examples.map((ex, i) => (
         <div key={i} className="card-edit__example">
-          <input placeholder="中文" value={ex.hanzi} onChange={(e) => updateExample(i, { hanzi: e.target.value })} />
+          <div className="card-edit__example-row">
+            <input placeholder="中文" value={ex.hanzi} onChange={(e) => updateExample(i, { hanzi: e.target.value })} />
+            <button onClick={() => speak(ex.hanzi)} aria-label="例文を試聴">
+              <SpeakerIcon />
+            </button>
+          </div>
           <input
+            className="card-edit__example-sub"
             placeholder="注音"
             value={ex.zhuyin}
             onChange={(e) => updateExample(i, { zhuyin: e.target.value, zhuyinEdited: true })}
           />
-          <input placeholder="意味" value={ex.meaning} onChange={(e) => updateExample(i, { meaning: e.target.value })} />
-          <button onClick={() => speak(ex.hanzi)} aria-label="例文を試聴">
-            <SpeakerIcon />
-          </button>
+          <input
+            className="card-edit__example-sub"
+            placeholder="意味"
+            value={ex.meaning}
+            onChange={(e) => updateExample(i, { meaning: e.target.value })}
+          />
         </div>
       ))}
       <button className="ghost-btn" onClick={addExample} style={{ display: 'flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start' }}>
