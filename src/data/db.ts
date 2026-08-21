@@ -43,3 +43,12 @@ export async function deleteCard(id: string): Promise<void> {
   const db = await openDb();
   await db.delete(STORE, id);
 }
+
+export async function listTags(): Promise<string[]> {
+  const cards = await listCards();
+  const tags = new Set<string>();
+  for (const card of cards) {
+    for (const tag of card.tags) tags.add(tag);
+  }
+  return [...tags].sort((a, b) => a.localeCompare(b, 'ja'));
+}

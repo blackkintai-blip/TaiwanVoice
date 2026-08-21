@@ -83,6 +83,7 @@ type PlayRepeatedOptions = {
   repeatCount: number;
   gapMs: number;
   onAllDone?: () => void;
+  onItemStart?: (itemIndex: number) => void;
   scheduleGap?: (fn: () => void, ms: number) => number;
   cancelGap?: (handle: number) => void;
   queueFactory?: (
@@ -114,6 +115,7 @@ export function playRepeated(
       opts.onAllDone?.();
       return;
     }
+    if (repeatIndex === 0) opts.onItemStart?.(itemIndex);
     currentQueue = makeQueue(synth, voice, {
       rate: opts.rate,
       onDone: () => {

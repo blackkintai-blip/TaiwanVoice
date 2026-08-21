@@ -140,6 +140,15 @@ input, select, textarea { accent-color: var(--accent); }
 }
 .list-screen__search input::placeholder { color: var(--text-faint); }
 
+.list-screen__tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 20px 14px; }
+.list-screen__tags button { border: none; }
+
+.list-screen__card-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.list-screen__card-tag {
+  font-size: 11px; padding: 3px 9px; border-radius: 999px;
+  background: var(--surface-raised); color: var(--text-dim); border: 1px solid var(--hairline);
+}
+
 .list-screen ul { flex: 1; overflow-y: auto; margin: 0; padding: 0 16px 96px; list-style: none; display: flex; flex-direction: column; gap: 10px; }
 .list-screen li {
   display: flex; align-items: center; gap: 14px;
@@ -187,6 +196,14 @@ input, select, textarea { accent-color: var(--accent); }
 .card-edit__zhuyin-row input { flex: 1; padding: 12px 14px; border-radius: var(--radius-md); background: var(--surface); border: 1px solid var(--hairline); color: var(--text); font-size: 15px; outline: none; }
 .card-edit__zhuyin-row button { width: 44px; height: 44px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); border: none; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .card-edit__zhuyin-row button svg { width: 17px; height: 17px; }
+.card-edit__tags { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.card-edit__tags button { border: none; }
+.card-edit__tag-input {
+  flex: 1; min-width: 100px; padding: 7px 4px; background: none; border: none;
+  color: var(--text); font-size: 13px; outline: none;
+}
+.card-edit__tag-suggestions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.card-edit__tag-suggestions button { border: none; }
 .card-edit h3 { font-size: 14px; color: var(--text-dim); margin: 4px 0 0; font-weight: 500; }
 .card-edit__example { display: flex; align-items: center; gap: 8px; }
 .card-edit__example input { flex: 1; padding: 10px 12px; border-radius: var(--radius-sm); background: var(--surface); border: 1px solid var(--hairline); color: var(--text); font-size: 13.5px; outline: none; }
@@ -263,6 +280,14 @@ input, select, textarea { accent-color: var(--accent); }
 }
 .quiz-screen__speak-btn svg { width: 30px; height: 30px; }
 .quiz-screen__answer { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+.quiz-screen__examples { display: flex; flex-direction: column; gap: 10px; max-width: 100%; }
+.quiz-screen__example {
+  padding: 10px 14px; border-radius: var(--radius-sm);
+  background: var(--surface); border: 1px solid var(--hairline-soft);
+}
+.quiz-screen__example-hanzi { font-family: var(--font-hanzi); font-size: 16px; }
+.quiz-screen__example-zhuyin { font-size: 11.5px; color: var(--text-dim); margin-top: 3px; letter-spacing: 0.03em; }
+.quiz-screen__example-meaning { font-size: 12px; color: var(--text-faint); margin-top: 3px; }
 .quiz-screen__grades { display: flex; gap: 10px; }
 .quiz-screen__grade {
   padding: 12px 18px; border-radius: 999px; border: none; font-size: 13.5px; font-weight: 600;

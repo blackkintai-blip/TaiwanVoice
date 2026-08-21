@@ -11,10 +11,11 @@ function todayStr(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-function speak(text: string) {
+function speakCard(card: Card) {
   const voice = pickTaiwaneseVoice(window.speechSynthesis.getVoices());
   const q = new SpeechQueue(window.speechSynthesis, voice);
-  q.enqueue(text);
+  q.enqueue(card.hanzi);
+  for (const example of card.examples) q.enqueue(example.hanzi);
   q.start();
 }
 
@@ -36,7 +37,7 @@ export function QuizScreen() {
 
   useEffect(() => {
     if (direction === 'audioToMeaning' && current && !flipped) {
-      speak(current.hanzi);
+      speakCard(current);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [current, flipped, direction]);
@@ -104,7 +105,7 @@ export function QuizScreen() {
           </>
         )}
         {direction === 'audioToMeaning' && (
-          <button className="quiz-screen__speak-btn" onClick={() => speak(current.hanzi)} aria-label="再生">
+          <button className="quiz-screen__speak-btn" onClick={() => speakCard(current)} aria-label="再生">
             <SpeakerIcon />
           </button>
         )}
@@ -126,6 +127,21 @@ export function QuizScreen() {
           )}
           {(direction === 'hanziToMeaning' || direction === 'audioToMeaning') && (
             <div className="quiz-screen__prompt-meaning">{current.meaning}</div>
+          )}
+          {current.examples.length > 0 && (
+            <div className="quiz-screen__examples">
+              {current.examples.map((ex, i) => (
+                <div key={i} className="quiz-screen__example">
+                  {direction !== 'audioToMeaning' && (
+                    <>
+                      <div className="quiz-screen__example-hanzi">{ex.hanzi}</div>
+                      <div className="quiz-screen__example-zhuyin">{ex.zhuyin}</div>
+                    </>
+                  )}
+                  <div className="quiz-screen__example-meaning">{ex.meaning}</div>
+                </div>
+              ))}
+            </div>
           )}
           <div className="quiz-screen__grades">
             <button className="quiz-screen__grade quiz-screen__grade--again" onClick={() => onGrade('again')}>

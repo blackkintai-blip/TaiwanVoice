@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import type { Card, Example } from '../../core/types';
 import { newSrsState } from '../../core/srs';
 import { annotate } from '../../core/bopomofo';
-import { getCard, putCard, deleteCard } from '../../data/db';
+import { getCard, putCard, deleteCard, listTags } from '../../data/db';
 import { useDict } from '../../dict/useDict';
 import { SpeechQueue, pickTaiwaneseVoice } from '../../audio/speech';
 import { PlusIcon, SpeakerIcon } from '../icons';
@@ -25,18 +25,28 @@ function emptyCard(): Card {
 export function CardEditScreen({ cardId, onDone }: { cardId: string | null; onDone: () => void }) {
   const { dict } = useDict();
   const [card, setCard] = useState<Card>(emptyCard());
-  const [tagsText, setTagsText] = useState('');
+  const [allTags, setAllTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState('');
 
   useEffect(() => {
     if (cardId) {
       getCard(cardId).then((c) => {
-        if (c) {
-          setCard(c);
-          setTagsText(c.tags.join(', '));
-        }
+        if (c) setCard(c);
       });
     }
+    listTags().then(setAllTags);
   }, [cardId]);
+
+  function addTag(raw: string) {
+    const tag = raw.trim();
+    if (!tag) return;
+    setCard((c) => (c.tags.includes(tag) ? c : { ...c, tags: [...c.tags, tag] }));
+    setTagInput('');
+  }
+
+  function removeTag(tag: string) {
+    setCard((c) => ({ ...c, tags: c.tags.filter((t) => t !== tag) }));
+  }
 
   function updateHanzi(hanzi: string) {
     setCard((c) => ({
@@ -72,8 +82,7 @@ export function CardEditScreen({ cardId, onDone }: { cardId: string | null; onDo
   }
 
   async function save() {
-    const tags = tagsText.split(',').map((t) => t.trim()).filter(Boolean);
-    const toSave: Card = { ...card, tags, updatedAt: new Date().toISOString() };
+    const toSave: Card = { ...card, updatedAt: new Date().toISOString() };
     await putCard(toSave);
     onDone();
   }
@@ -105,8 +114,41 @@ export function CardEditScreen({ cardId, onDone }: { cardId: string | null; onDo
         <input value={card.meaning} onChange={(e) => setCard((c) => ({ ...c, meaning: e.target.value }))} />
       </label>
       <label>
-        タグ（カンマ区切り）
-        <input value={tagsText} onChange={(e) => setTagsText(e.target.value)} />
+        タグ
+        <div className="card-edit__tags">
+          {card.tags.map((tag) => (
+            <button key={tag} type="button" className="pill pill--toggled" onClick={() => removeTag(tag)}>
+              {tag} ×
+            </button>
+          ))}
+          <input
+            className="card-edit__tag-input"
+            placeholder="タグを入力してEnter"
+            value={tagInput}
+            onChange={(e) => {
+              if (e.target.value.endsWith(',')) {
+                addTag(e.target.value.slice(0, -1));
+              } else {
+                setTagInput(e.target.value);
+              }
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                addTag(tagInput);
+              }
+            }}
+          />
+        </div>
+        {allTags.filter((t) => !card.tags.includes(t)).length > 0 && (
+          <div className="card-edit__tag-suggestions">
+            {allTags.filter((t) => !card.tags.includes(t)).map((tag) => (
+              <button key={tag} type="button" className="pill" onClick={() => addTag(tag)}>
+                {tag}
+              </button>
+            ))}
+          </div>
+        )}
       </label>
       <label>
         メモ
@@ -116,12 +158,13 @@ export function CardEditScreen({ cardId, onDone }: { cardId: string | null; onDo
       <h3>例文</h3>
       {card.examples.map((ex, i) => (
         <div key={i} className="card-edit__example">
-          <input value={ex.hanzi} onChange={(e) => updateExample(i, { hanzi: e.target.value })} />
+          <input placeholder="中文" value={ex.hanzi} onChange={(e) => updateExample(i, { hanzi: e.target.value })} />
           <input
+            placeholder="注音"
             value={ex.zhuyin}
             onChange={(e) => updateExample(i, { zhuyin: e.target.value, zhuyinEdited: true })}
           />
-          <input value={ex.meaning} onChange={(e) => updateExample(i, { meaning: e.target.value })} />
+          <input placeholder="意味" value={ex.meaning} onChange={(e) => updateExample(i, { meaning: e.target.value })} />
           <button onClick={() => speak(ex.hanzi)} aria-label="例文を試聴">
             <SpeakerIcon />
           </button>

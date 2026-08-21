@@ -22,6 +22,7 @@ export function ListenScreen() {
   const [index, setIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
   const [continuous, setContinuous] = useState(false);
+  const [playingIndex, setPlayingIndex] = useState(0);
   const sessionRef = useRef<{ stop: () => void } | null>(null);
 
   useEffect(() => {
@@ -46,6 +47,7 @@ export function ListenScreen() {
   function play() {
     if (!current) return;
     stopPlayback();
+    setPlayingIndex(0);
     const settings = loadPlaybackSettings();
     const voice = pickTaiwaneseVoice(window.speechSynthesis.getVoices());
     const items = [current.hanzi, ...current.examples.map((e) => e.hanzi)];
@@ -53,6 +55,7 @@ export function ListenScreen() {
       rate: settings.rate,
       repeatCount: settings.repeatCount,
       gapMs: settings.gapMs,
+      onItemStart: setPlayingIndex,
       onAllDone: () => {
         if (continuous) setIndex((i) => Math.min(ordered.length - 1, i + 1));
       },
@@ -71,11 +74,13 @@ export function ListenScreen() {
 
   function next() {
     stopPlayback();
+    setPlayingIndex(0);
     setIndex((i) => Math.min(ordered.length - 1, i + 1));
   }
 
   function prev() {
     stopPlayback();
+    setPlayingIndex(0);
     setIndex((i) => Math.max(0, i - 1));
   }
 
@@ -116,9 +121,17 @@ export function ListenScreen() {
 
         {revealed && current ? (
           <div className="listen-screen__reveal">
-            <div className="listen-screen__reveal-hanzi">{current.hanzi}</div>
-            <div className="listen-screen__reveal-zhuyin">{current.zhuyin}</div>
-            <div className="listen-screen__reveal-meaning">{current.meaning}</div>
+            {(() => {
+              const item = playingIndex === 0 ? current : current.examples[playingIndex - 1];
+              if (!item) return null;
+              return (
+                <>
+                  <div className="listen-screen__reveal-hanzi">{item.hanzi}</div>
+                  <div className="listen-screen__reveal-zhuyin">{item.zhuyin}</div>
+                  <div className="listen-screen__reveal-meaning">{item.meaning}</div>
+                </>
+              );
+            })()}
           </div>
         ) : (
           <div className="listen-screen__reveal-hint">長押しで文字を表示</div>
