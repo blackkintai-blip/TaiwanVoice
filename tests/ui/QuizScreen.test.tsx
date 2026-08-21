@@ -44,7 +44,7 @@ test('hanzi-to-meaning: shows hanzi, hides meaning until flipped, grading advanc
   });
 });
 
-test('audio-to-meaning mode never renders the hanzi text', async () => {
+test('audio-to-meaning mode hides hanzi until flipped, then shows hanzi, zhuyin and meaning', async () => {
   await putCard(makeCard());
   render(<QuizScreen />);
   await waitFor(() => screen.getByText('開始'));
@@ -56,5 +56,21 @@ test('audio-to-meaning mode never renders the hanzi text', async () => {
 
   fireEvent.click(screen.getByText('答えを見る'));
   expect(screen.getByText('こんにちは')).toBeInTheDocument();
-  expect(screen.queryByText('你好')).not.toBeInTheDocument();
+  expect(screen.getByText('你好')).toBeInTheDocument();
+  expect(screen.getByText('ㄋㄧˇㄏㄠˇ')).toBeInTheDocument();
+});
+
+test('grading "again" keeps the same question instead of advancing', async () => {
+  await putCard(makeCard({ id: 'a', hanzi: '你好' }));
+  await putCard(makeCard({ id: 'b', hanzi: '謝謝', zhuyin: 'ㄒㄧㄝˋㄒㄧㄝ˙', meaning: 'ありがとう' }));
+  render(<QuizScreen />);
+  await waitFor(() => screen.getByText('開始'));
+  fireEvent.click(screen.getByLabelText('中文 → 意味'));
+  fireEvent.click(screen.getByText('開始'));
+
+  await waitFor(() => screen.getByText('你好'));
+  fireEvent.click(screen.getByText('答えを見る'));
+  fireEvent.click(screen.getByRole('button', { name: 'もう一度' }));
+
+  await waitFor(() => screen.getByText('你好'));
 });

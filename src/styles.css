@@ -282,6 +282,7 @@ input, select, textarea { accent-color: var(--accent); }
 }
 .quiz-screen__prompt { display: flex; flex-direction: column; gap: 10px; align-items: center; }
 .quiz-screen__prompt-hanzi { font-family: var(--font-hanzi); font-size: 32px; }
+.quiz-screen__prompt-hanzi--clickable { cursor: pointer; }
 .quiz-screen__prompt-zhuyin { font-size: 14px; color: var(--text-dim); letter-spacing: 0.05em; }
 .quiz-screen__prompt-meaning { font-size: 20px; }
 .quiz-screen__speak-btn {

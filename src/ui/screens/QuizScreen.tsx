@@ -87,12 +87,27 @@ export function QuizScreen() {
     };
     await putCard(updated);
     setFlipped(false);
-    setIndex((i) => i + 1);
+    if (choice !== 'again') {
+      setIndex((i) => i + 1);
+    }
   }
 
   if (!items) {
     return (
       <div className="quiz-screen quiz-screen--setup">
+        {tags.length > 0 && (
+          <div className="quiz-screen__tags">
+            {tags.map((tag) => (
+              <button
+                key={tag}
+                className={activeTags.includes(tag) ? 'pill pill--toggled' : 'pill'}
+                onClick={() => toggleTag(tag)}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+        )}
         <label className="quiz-screen__direction">
           <input
             type="radio"
@@ -153,19 +168,6 @@ export function QuizScreen() {
           />
           例文のみ
         </label>
-        {tags.length > 0 && (
-          <div className="quiz-screen__tags">
-            {tags.map((tag) => (
-              <button
-                key={tag}
-                className={activeTags.includes(tag) ? 'pill pill--toggled' : 'pill'}
-                onClick={() => toggleTag(tag)}
-              >
-                {tag}
-              </button>
-            ))}
-          </div>
-        )}
         <button className="primary-btn" onClick={startSession} style={{ marginTop: 8 }}>
           開始
         </button>
@@ -203,6 +205,20 @@ export function QuizScreen() {
       {flipped && (
         <div className="quiz-screen__answer">
           {direction === 'meaningToHanzi' && (
+            <>
+              <div
+                className="quiz-screen__prompt-hanzi quiz-screen__prompt-hanzi--clickable"
+                onClick={() => speakText(current.hanzi)}
+                role="button"
+                tabIndex={0}
+                aria-label="音声を再生"
+              >
+                {current.hanzi}
+              </div>
+              <div className="quiz-screen__prompt-zhuyin">{current.zhuyin}</div>
+            </>
+          )}
+          {direction === 'audioToMeaning' && (
             <>
               <div className="quiz-screen__prompt-hanzi">{current.hanzi}</div>
               <div className="quiz-screen__prompt-zhuyin">{current.zhuyin}</div>
