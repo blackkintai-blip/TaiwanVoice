@@ -236,7 +236,10 @@ input, select, textarea { accent-color: var(--accent); }
   border: 1px solid var(--hairline-soft);
 }
 .listen-screen__ctrl svg { width: 19px; height: 19px; }
-.listen-screen__ctrl--eye { color: var(--accent); background: var(--accent-soft); border-color: var(--accent-border); }
+.listen-screen__ctrl--eye {
+  color: var(--accent); background: var(--accent-soft); border-color: var(--accent-border);
+  touch-action: none; -webkit-touch-callout: none; user-select: none;
+}
 
 /* ---------- Quiz screen ---------- */
 

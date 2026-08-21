@@ -135,9 +135,14 @@ export function ListenScreen() {
         <button
           className="listen-screen__ctrl listen-screen__ctrl--eye"
           aria-label="文字を見る"
-          onPointerDown={() => setRevealed(true)}
+          onPointerDown={(e) => {
+            e.preventDefault();
+            setRevealed(true);
+          }}
           onPointerUp={() => setRevealed(false)}
           onPointerLeave={() => setRevealed(false)}
+          onPointerCancel={() => setRevealed(false)}
+          onContextMenu={(e) => e.preventDefault()}
         >
           <EyeIcon />
         </button>

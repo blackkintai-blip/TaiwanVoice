@@ -11,7 +11,7 @@ export function useDict() {
     let cancelled = false;
     setDict(null);
     setError(false);
-    fetch('/dict/zhuyin-dict.json')
+    fetch(`${import.meta.env.BASE_URL}dict/zhuyin-dict.json`)
       .then((res) => {
         if (!res.ok) throw new Error(`status ${res.status}`);
         return res.json();
