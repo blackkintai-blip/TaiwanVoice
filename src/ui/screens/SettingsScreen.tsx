@@ -5,12 +5,16 @@ import { annotate } from '../../core/bopomofo';
 import { pickTaiwaneseVoice } from '../../audio/speech';
 import { useDict } from '../../dict/useDict';
 import { loadPlaybackSettings, savePlaybackSettings, type PlaybackSettings } from '../../data/settings';
+import { connectDrive, disconnectDrive, isConnected, subscribeSyncStatus, syncDown, syncUp } from '../../cloud/sync';
 
 export function SettingsScreen() {
   const { dict } = useDict();
   const [hasVoice, setHasVoice] = useState(true);
   const [status, setStatus] = useState('');
   const [playback, setPlayback] = useState<PlaybackSettings>(() => loadPlaybackSettings());
+  const [driveConnected, setDriveConnected] = useState(() => isConnected());
+
+  useEffect(() => subscribeSyncStatus((s) => { if (s.message) setStatus(s.message); }), []);
 
   useEffect(() => {
     function check() {
@@ -49,6 +53,21 @@ export function SettingsScreen() {
     e.target.value = '';
   }
 
+  async function handleConnectDrive() {
+    try {
+      await connectDrive();
+      setDriveConnected(true);
+    } catch {
+      setStatus('Google Drive への接続に失敗しました');
+    }
+  }
+
+  function handleDisconnectDrive() {
+    disconnectDrive();
+    setDriveConnected(false);
+    setStatus('連携を解除しました');
+  }
+
   async function reapplyDict() {
     if (!dict) return;
     const cards = await listCards();
@@ -84,6 +103,23 @@ export function SettingsScreen() {
         <button className="ghost-btn" onClick={reapplyDict} disabled={!dict}>
           辞書を再適用
         </button>
+      </section>
+
+      <section>
+        {driveConnected ? (
+          <>
+            <button className="ghost-btn" onClick={() => { void syncUp(); void syncDown(); }}>
+              今すぐ同期
+            </button>
+            <button className="ghost-btn" onClick={handleDisconnectDrive}>
+              Google Driveの連携を解除
+            </button>
+          </>
+        ) : (
+          <button className="ghost-btn" onClick={handleConnectDrive}>
+            Google Driveに接続してバックアップ
+          </button>
+        )}
       </section>
 
       <section>
