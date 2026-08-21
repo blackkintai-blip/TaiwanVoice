@@ -143,7 +143,7 @@ export function CardEditScreen({ cardId, onDone }: { cardId: string | null; onDo
         {allTags.filter((t) => !card.tags.includes(t)).length > 0 && (
           <div className="card-edit__tag-suggestions">
             {allTags.filter((t) => !card.tags.includes(t)).map((tag) => (
-              <button key={tag} type="button" className="pill" onClick={() => setTagInput(tag)}>
+              <button key={tag} type="button" className="pill" onClick={() => addTag(tag)}>
                 {tag}
               </button>
             ))}
