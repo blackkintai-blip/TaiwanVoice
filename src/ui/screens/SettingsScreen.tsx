@@ -71,7 +71,9 @@ export function SettingsScreen() {
       )}
 
       <section>
-        <button onClick={handleExport}>バックアップを書き出す</button>
+        <button className="ghost-btn" onClick={handleExport}>
+          バックアップを書き出す
+        </button>
         <label>
           バックアップを読み込む
           <input type="file" accept="application/json" onChange={handleImport} />
@@ -79,7 +81,9 @@ export function SettingsScreen() {
       </section>
 
       <section>
-        <button onClick={reapplyDict}>辞書を再適用</button>
+        <button className="ghost-btn" onClick={reapplyDict}>
+          辞書を再適用
+        </button>
       </section>
 
       <section>
@@ -106,7 +110,7 @@ export function SettingsScreen() {
         </label>
       </section>
 
-      {status && <p>{status}</p>}
+      {status && <p className="settings-screen__status">{status}</p>}
     </div>
   );
 }

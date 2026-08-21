@@ -5,6 +5,7 @@ import { annotate } from '../../core/bopomofo';
 import { getCard, putCard, deleteCard } from '../../data/db';
 import { useDict } from '../../dict/useDict';
 import { SpeechQueue, pickTaiwaneseVoice } from '../../audio/speech';
+import { PlusIcon, SpeakerIcon } from '../icons';
 
 function todayStr(): string {
   return new Date().toISOString().slice(0, 10);
@@ -84,6 +85,8 @@ export function CardEditScreen({ cardId, onDone }: { cardId: string | null; onDo
 
   return (
     <div className="card-edit">
+      <div className="list-screen__titlebar">{cardId ? 'カードを編集' : 'カードを追加'}</div>
+
       <label>
         中文
         <input value={card.hanzi} onChange={(e) => updateHanzi(e.target.value)} />
@@ -93,7 +96,9 @@ export function CardEditScreen({ cardId, onDone }: { cardId: string | null; onDo
           value={card.zhuyin}
           onChange={(e) => setCard((c) => ({ ...c, zhuyin: e.target.value, zhuyinEdited: true }))}
         />
-        <button onClick={() => speak(card.hanzi)} aria-label="試聴">🔊</button>
+        <button onClick={() => speak(card.hanzi)} aria-label="試聴">
+          <SpeakerIcon />
+        </button>
       </div>
       <label>
         意味
@@ -117,15 +122,20 @@ export function CardEditScreen({ cardId, onDone }: { cardId: string | null; onDo
             onChange={(e) => updateExample(i, { zhuyin: e.target.value, zhuyinEdited: true })}
           />
           <input value={ex.meaning} onChange={(e) => updateExample(i, { meaning: e.target.value })} />
-          <button onClick={() => speak(ex.hanzi)} aria-label="例文を試聴">🔊</button>
+          <button onClick={() => speak(ex.hanzi)} aria-label="例文を試聴">
+            <SpeakerIcon />
+          </button>
         </div>
       ))}
-      <button onClick={addExample}>例文を追加</button>
+      <button className="ghost-btn" onClick={addExample} style={{ display: 'flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start' }}>
+        <PlusIcon style={{ width: 15, height: 15 }} />
+        例文を追加
+      </button>
 
       <div className="card-edit__actions">
-        <button onClick={save}>保存</button>
-        {cardId && <button onClick={remove}>削除</button>}
-        <button onClick={onDone}>キャンセル</button>
+        <button className="primary-btn" onClick={save}>保存</button>
+        {cardId && <button className="ghost-btn" onClick={remove}>削除</button>}
+        <button className="ghost-btn" onClick={onDone}>キャンセル</button>
       </div>
     </div>
   );

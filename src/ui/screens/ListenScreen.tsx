@@ -3,6 +3,7 @@ import type { Card } from '../../core/types';
 import { listCards } from '../../data/db';
 import { pickTaiwaneseVoice, playRepeated } from '../../audio/speech';
 import { loadPlaybackSettings } from '../../data/settings';
+import { EyeIcon, NextIcon, PlayIcon, PrevIcon, ReplayIcon } from '../icons';
 
 type Order = 'sequential' | 'random';
 
@@ -85,41 +86,64 @@ export function ListenScreen() {
   return (
     <div className="listen-screen">
       <div className="listen-screen__header">
-        {index + 1} / {ordered.length}
-        <select value={order} onChange={(e) => setOrder(e.target.value as Order)}>
-          <option value="sequential">登録順</option>
-          <option value="random">ランダム</option>
-        </select>
-        <label>
-          <input type="checkbox" checked={continuous} onChange={(e) => setContinuous(e.target.checked)} />
-          自動連続再生
-        </label>
+        <span>
+          {index + 1} / {ordered.length}
+        </span>
+        <div className="listen-screen__header-actions">
+          <button
+            className={order === 'random' ? 'pill pill--toggled' : 'pill'}
+            onClick={() => setOrder((o) => (o === 'random' ? 'sequential' : 'random'))}
+          >
+            <ReplayIcon />
+            {order === 'random' ? 'ランダム' : '登録順'}
+          </button>
+          <label className={continuous ? 'pill pill--toggled' : 'pill'}>
+            <input
+              type="checkbox"
+              checked={continuous}
+              onChange={(e) => setContinuous(e.target.checked)}
+              style={{ display: 'none' }}
+            />
+            自動連続再生
+          </label>
+        </div>
       </div>
 
-      <button className="listen-screen__play" onClick={play} aria-label="再生">
-        ●
-      </button>
+      <div className="listen-screen__stage">
+        <button className="listen-screen__play" onClick={play} aria-label="再生">
+          <PlayIcon />
+        </button>
 
-      {revealed && current && (
-        <div className="listen-screen__reveal">
-          <div>{current.hanzi}</div>
-          <div>{current.zhuyin}</div>
-          <div>{current.meaning}</div>
-        </div>
-      )}
+        {revealed && current ? (
+          <div className="listen-screen__reveal">
+            <div className="listen-screen__reveal-hanzi">{current.hanzi}</div>
+            <div className="listen-screen__reveal-zhuyin">{current.zhuyin}</div>
+            <div className="listen-screen__reveal-meaning">{current.meaning}</div>
+          </div>
+        ) : (
+          <div className="listen-screen__reveal-hint">長押しで文字を表示</div>
+        )}
+      </div>
 
       <div className="listen-screen__controls">
-        <button onClick={prev} aria-label="前">◀</button>
-        <button onClick={play} aria-label="もう一度">⟳</button>
+        <button className="listen-screen__ctrl" onClick={prev} aria-label="前">
+          <PrevIcon />
+        </button>
+        <button className="listen-screen__ctrl" onClick={play} aria-label="もう一度">
+          <ReplayIcon />
+        </button>
         <button
+          className="listen-screen__ctrl listen-screen__ctrl--eye"
           aria-label="文字を見る"
           onPointerDown={() => setRevealed(true)}
           onPointerUp={() => setRevealed(false)}
           onPointerLeave={() => setRevealed(false)}
         >
-          👁
+          <EyeIcon />
         </button>
-        <button onClick={next} aria-label="次">▶</button>
+        <button className="listen-screen__ctrl" onClick={next} aria-label="次">
+          <NextIcon />
+        </button>
       </div>
     </div>
   );

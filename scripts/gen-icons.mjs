@@ -65,7 +65,7 @@ function solidColorPng(size, [r, g, b]) {
 }
 
 mkdirSync(outDir, { recursive: true });
-const NAVY = [11, 11, 15]; // #0b0b0f, matches manifest background_color
+const NAVY = [20, 22, 29]; // #14161d, matches manifest background_color
 writeFileSync(join(outDir, 'icon-192.png'), solidColorPng(192, NAVY));
 writeFileSync(join(outDir, 'icon-512.png'), solidColorPng(512, NAVY));
 console.log('wrote icon-192.png and icon-512.png');

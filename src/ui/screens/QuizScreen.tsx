@@ -3,6 +3,7 @@ import type { Card } from '../../core/types';
 import { grade, type Grade } from '../../core/srs';
 import { listCards, putCard } from '../../data/db';
 import { SpeechQueue, pickTaiwaneseVoice } from '../../audio/speech';
+import { SpeakerIcon } from '../icons';
 
 type Direction = 'hanziToMeaning' | 'meaningToHanzi' | 'audioToMeaning';
 
@@ -51,7 +52,7 @@ export function QuizScreen() {
   if (!cards) {
     return (
       <div className="quiz-screen quiz-screen--setup">
-        <label>
+        <label className="quiz-screen__direction">
           <input
             type="radio"
             name="direction"
@@ -61,7 +62,7 @@ export function QuizScreen() {
           />
           中文 → 意味
         </label>
-        <label>
+        <label className="quiz-screen__direction">
           <input
             type="radio"
             name="direction"
@@ -71,7 +72,7 @@ export function QuizScreen() {
           />
           意味 → 中文
         </label>
-        <label>
+        <label className="quiz-screen__direction">
           <input
             type="radio"
             name="direction"
@@ -81,7 +82,9 @@ export function QuizScreen() {
           />
           音声 → 意味
         </label>
-        <button onClick={startSession}>開始</button>
+        <button className="primary-btn" onClick={startSession} style={{ marginTop: 8 }}>
+          開始
+        </button>
       </div>
     );
   }
@@ -93,33 +96,47 @@ export function QuizScreen() {
   return (
     <div className="quiz-screen">
       <div className="quiz-screen__prompt">
-        {direction === 'meaningToHanzi' && current.meaning}
+        {direction === 'meaningToHanzi' && <div className="quiz-screen__prompt-meaning">{current.meaning}</div>}
         {direction === 'hanziToMeaning' && (
           <>
-            <div>{current.hanzi}</div>
-            <div>{current.zhuyin}</div>
+            <div className="quiz-screen__prompt-hanzi">{current.hanzi}</div>
+            <div className="quiz-screen__prompt-zhuyin">{current.zhuyin}</div>
           </>
         )}
         {direction === 'audioToMeaning' && (
-          <button onClick={() => speak(current.hanzi)} aria-label="再生">🔊</button>
+          <button className="quiz-screen__speak-btn" onClick={() => speak(current.hanzi)} aria-label="再生">
+            <SpeakerIcon />
+          </button>
         )}
       </div>
 
-      {!flipped && <button onClick={() => setFlipped(true)}>答えを見る</button>}
+      {!flipped && (
+        <button className="primary-btn" onClick={() => setFlipped(true)}>
+          答えを見る
+        </button>
+      )}
 
       {flipped && (
         <div className="quiz-screen__answer">
           {direction === 'meaningToHanzi' && (
             <>
-              <div>{current.hanzi}</div>
-              <div>{current.zhuyin}</div>
+              <div className="quiz-screen__prompt-hanzi">{current.hanzi}</div>
+              <div className="quiz-screen__prompt-zhuyin">{current.zhuyin}</div>
             </>
           )}
-          {(direction === 'hanziToMeaning' || direction === 'audioToMeaning') && <div>{current.meaning}</div>}
+          {(direction === 'hanziToMeaning' || direction === 'audioToMeaning') && (
+            <div className="quiz-screen__prompt-meaning">{current.meaning}</div>
+          )}
           <div className="quiz-screen__grades">
-            <button onClick={() => onGrade('again')}>もう一度</button>
-            <button onClick={() => onGrade('good')}>普通</button>
-            <button onClick={() => onGrade('easy')}>簡単</button>
+            <button className="quiz-screen__grade quiz-screen__grade--again" onClick={() => onGrade('again')}>
+              もう一度
+            </button>
+            <button className="quiz-screen__grade quiz-screen__grade--good" onClick={() => onGrade('good')}>
+              普通
+            </button>
+            <button className="quiz-screen__grade quiz-screen__grade--easy" onClick={() => onGrade('easy')}>
+              簡単
+            </button>
           </div>
         </div>
       )}

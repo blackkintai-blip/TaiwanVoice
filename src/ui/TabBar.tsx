@@ -1,22 +1,25 @@
+import { TabListIcon, TabListenIcon, TabQuizIcon, TabSettingsIcon } from './icons';
+
 export type Tab = 'list' | 'listen' | 'quiz' | 'settings';
 
-const TABS: { id: Tab; label: string }[] = [
-  { id: 'list', label: '一覧' },
-  { id: 'listen', label: '聞く' },
-  { id: 'quiz', label: '出題' },
-  { id: 'settings', label: '設定' },
+const TABS: { id: Tab; label: string; Icon: typeof TabListIcon }[] = [
+  { id: 'list', label: '一覧', Icon: TabListIcon },
+  { id: 'listen', label: '聞く', Icon: TabListenIcon },
+  { id: 'quiz', label: '出題', Icon: TabQuizIcon },
+  { id: 'settings', label: '設定', Icon: TabSettingsIcon },
 ];
 
 export function TabBar({ active, onChange }: { active: Tab; onChange: (tab: Tab) => void }) {
   return (
     <nav className="tabbar">
-      {TABS.map((tab) => (
+      {TABS.map(({ id, label, Icon }) => (
         <button
-          key={tab.id}
-          className={tab.id === active ? 'tabbar__item tabbar__item--active' : 'tabbar__item'}
-          onClick={() => onChange(tab.id)}
+          key={id}
+          className={id === active ? 'tabbar__item tabbar__item--active' : 'tabbar__item'}
+          onClick={() => onChange(id)}
         >
-          {tab.label}
+          <Icon />
+          {label}
         </button>
       ))}
     </nav>
