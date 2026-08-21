@@ -6,51 +6,79 @@ import { SpeechQueue, pickTaiwaneseVoice } from '../../audio/speech';
 import { SpeakerIcon } from '../icons';
 
 type Direction = 'hanziToMeaning' | 'meaningToHanzi' | 'audioToMeaning';
+type Scope = 'both' | 'wordOnly' | 'exampleOnly';
+
+type QuizItem = {
+  card: Card;
+  kind: 'word' | 'example';
+  hanzi: string;
+  zhuyin: string;
+  meaning: string;
+};
 
 function todayStr(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-function speakCard(card: Card) {
+function buildItems(cards: Card[], scope: Scope): QuizItem[] {
+  const items: QuizItem[] = [];
+  for (const card of cards) {
+    if (scope !== 'exampleOnly') {
+      items.push({ card, kind: 'word', hanzi: card.hanzi, zhuyin: card.zhuyin, meaning: card.meaning });
+    }
+    if (scope !== 'wordOnly') {
+      for (const ex of card.examples) {
+        items.push({ card, kind: 'example', hanzi: ex.hanzi, zhuyin: ex.zhuyin, meaning: ex.meaning });
+      }
+    }
+  }
+  return items;
+}
+
+function speakText(hanzi: string) {
   const voice = pickTaiwaneseVoice(window.speechSynthesis.getVoices());
   const q = new SpeechQueue(window.speechSynthesis, voice);
-  q.enqueue(card.hanzi);
-  for (const example of card.examples) q.enqueue(example.hanzi);
+  q.enqueue(hanzi);
   q.start();
 }
 
 export function QuizScreen() {
   const [direction, setDirection] = useState<Direction>('hanziToMeaning');
-  const [cards, setCards] = useState<Card[] | null>(null);
+  const [scope, setScope] = useState<Scope>('both');
+  const [items, setItems] = useState<QuizItem[] | null>(null);
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
 
   function startSession() {
     listCards().then((all) => {
-      setCards(all);
+      setItems(buildItems(all, scope));
       setIndex(0);
       setFlipped(false);
     });
   }
 
-  const current = cards?.[index];
+  const current = items?.[index];
 
   useEffect(() => {
     if (direction === 'audioToMeaning' && current && !flipped) {
-      speakCard(current);
+      speakText(current.hanzi);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [current, flipped, direction]);
 
   async function onGrade(choice: Grade) {
     if (!current) return;
-    const updated: Card = { ...current, srs: grade(current.srs, choice, todayStr()), updatedAt: new Date().toISOString() };
+    const updated: Card = {
+      ...current.card,
+      srs: grade(current.card.srs, choice, todayStr()),
+      updatedAt: new Date().toISOString(),
+    };
     await putCard(updated);
     setFlipped(false);
     setIndex((i) => i + 1);
   }
 
-  if (!cards) {
+  if (!items) {
     return (
       <div className="quiz-screen quiz-screen--setup">
         <label className="quiz-screen__direction">
@@ -83,6 +111,36 @@ export function QuizScreen() {
           />
           音声 → 意味
         </label>
+        <label className="quiz-screen__direction">
+          <input
+            type="radio"
+            name="scope"
+            aria-label="両方"
+            checked={scope === 'both'}
+            onChange={() => setScope('both')}
+          />
+          両方（単語＋例文）
+        </label>
+        <label className="quiz-screen__direction">
+          <input
+            type="radio"
+            name="scope"
+            aria-label="単語のみ"
+            checked={scope === 'wordOnly'}
+            onChange={() => setScope('wordOnly')}
+          />
+          単語のみ
+        </label>
+        <label className="quiz-screen__direction">
+          <input
+            type="radio"
+            name="scope"
+            aria-label="例文のみ"
+            checked={scope === 'exampleOnly'}
+            onChange={() => setScope('exampleOnly')}
+          />
+          例文のみ
+        </label>
         <button className="primary-btn" onClick={startSession} style={{ marginTop: 8 }}>
           開始
         </button>
@@ -105,7 +163,7 @@ export function QuizScreen() {
           </>
         )}
         {direction === 'audioToMeaning' && (
-          <button className="quiz-screen__speak-btn" onClick={() => speakCard(current)} aria-label="再生">
+          <button className="quiz-screen__speak-btn" onClick={() => speakText(current.hanzi)} aria-label="再生">
             <SpeakerIcon />
           </button>
         )}
@@ -128,9 +186,9 @@ export function QuizScreen() {
           {(direction === 'hanziToMeaning' || direction === 'audioToMeaning') && (
             <div className="quiz-screen__prompt-meaning">{current.meaning}</div>
           )}
-          {current.examples.length > 0 && (
+          {current.kind === 'word' && current.card.examples.length > 0 && (
             <div className="quiz-screen__examples">
-              {current.examples.map((ex, i) => (
+              {current.card.examples.map((ex, i) => (
                 <div key={i} className="quiz-screen__example">
                   {direction !== 'audioToMeaning' && (
                     <>
