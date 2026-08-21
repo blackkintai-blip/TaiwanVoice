@@ -113,7 +113,7 @@ export function CardEditScreen({ cardId, onDone }: { cardId: string | null; onDo
         意味
         <input value={card.meaning} onChange={(e) => setCard((c) => ({ ...c, meaning: e.target.value }))} />
       </label>
-      <label>
+      <div className="card-edit__field">
         タグ
         <div className="card-edit__tags">
           {card.tags.map((tag) => (
@@ -149,7 +149,7 @@ export function CardEditScreen({ cardId, onDone }: { cardId: string | null; onDo
             ))}
           </div>
         )}
-      </label>
+      </div>
       <label>
         メモ
         <textarea value={card.note} onChange={(e) => setCard((c) => ({ ...c, note: e.target.value }))} />
