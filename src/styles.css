@@ -260,12 +260,16 @@ input, select, textarea { accent-color: var(--accent); }
 }
 .listen-screen__play svg { width: 46px; height: 46px; color: var(--accent); margin-left: 4px; }
 
-.listen-screen__controls { display: flex; align-items: center; gap: 28px; padding: 8px 0 24px; flex-shrink: 0; }
+.listen-screen__controls {
+  display: flex; align-items: center; justify-content: center;
+  gap: 16px; padding: 8px 0 24px; flex-shrink: 0;
+}
 .listen-screen__ctrl {
   width: 52px; height: 52px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   color: var(--text-dim); background: oklch(1 0 0 / 0.03);
   border: 1px solid var(--hairline-soft);
+  flex-shrink: 0;
 }
 .listen-screen__ctrl svg { width: 19px; height: 19px; }
 .listen-screen__ctrl--eye {
@@ -274,9 +278,10 @@ input, select, textarea { accent-color: var(--accent); }
 }
 .listen-screen__ctrl:disabled { opacity: 0.35; }
 
-.listen-screen__record { display: flex; align-items: center; justify-content: center; gap: 16px; padding: 0 0 20px; flex-shrink: 0; }
+.listen-screen__ctrl--sm { width: 44px; height: 44px; }
+.listen-screen__ctrl--sm svg { width: 16px; height: 16px; }
 .listen-screen__ctrl--recording { color: var(--bg-deep); background: var(--danger); border-color: var(--danger); }
-.listen-screen__record-denied { color: var(--text-faint); font-size: 12.5px; }
+.listen-screen__record-denied { color: var(--text-faint); font-size: 12.5px; text-align: center; padding-bottom: 20px; }
 
 /* ---------- Quiz screen ---------- */
 

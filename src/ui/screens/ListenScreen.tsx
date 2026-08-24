@@ -285,6 +285,29 @@ export function ListenScreen() {
         <button className="listen-screen__ctrl" onClick={play} aria-label="もう一度">
           <ReplayIcon />
         </button>
+        {canRecord && recordingStatus !== 'denied' && (
+          <>
+            <button
+              className={
+                recordingStatus === 'recording' || recordingStatus === 'requesting'
+                  ? 'listen-screen__ctrl listen-screen__ctrl--sm listen-screen__ctrl--recording'
+                  : 'listen-screen__ctrl listen-screen__ctrl--sm'
+              }
+              onClick={toggleRecording}
+              aria-label={recordingStatus === 'recording' ? '録音を停止' : '発音を録音'}
+            >
+              {recordingStatus === 'recording' || recordingStatus === 'requesting' ? <StopIcon /> : <MicIcon />}
+            </button>
+            <button
+              className="listen-screen__ctrl listen-screen__ctrl--sm"
+              onClick={playRecording}
+              disabled={recordingStatus !== 'recorded'}
+              aria-label="録音を再生"
+            >
+              <PlayIcon />
+            </button>
+          </>
+        )}
         <button
           className="listen-screen__ctrl listen-screen__ctrl--eye"
           aria-label="文字を見る"
@@ -304,36 +327,11 @@ export function ListenScreen() {
         </button>
       </div>
 
-      {canRecord && (
-        <div className="listen-screen__record">
-          {recordingStatus === 'denied' ? (
-            <span className="listen-screen__record-denied">マイクが使用できません</span>
-          ) : (
-            <>
-              <button
-                className={
-                  recordingStatus === 'recording' || recordingStatus === 'requesting'
-                    ? 'listen-screen__ctrl listen-screen__ctrl--recording'
-                    : 'listen-screen__ctrl'
-                }
-                onClick={toggleRecording}
-                aria-label={recordingStatus === 'recording' ? '録音を停止' : '発音を録音'}
-              >
-                {recordingStatus === 'recording' || recordingStatus === 'requesting' ? <StopIcon /> : <MicIcon />}
-              </button>
-              <button
-                className="listen-screen__ctrl"
-                onClick={playRecording}
-                disabled={recordingStatus !== 'recorded'}
-                aria-label="録音を再生"
-              >
-                <PlayIcon />
-              </button>
-            </>
-          )}
-          <audio ref={recordedAudioRef} src={recordingUrl ?? undefined} style={{ display: 'none' }} />
-        </div>
+      {canRecord && recordingStatus === 'denied' && (
+        <div className="listen-screen__record-denied">マイクが使用できません</div>
       )}
+
+      <audio ref={recordedAudioRef} src={recordingUrl ?? undefined} style={{ display: 'none' }} />
     </div>
   );
 }
