@@ -32,3 +32,11 @@ test('mergeDicts prefers moedict over unihan for the same character', () => {
   expect(merged['和']).toBe('ㄏㄢˋ');
   expect(merged['乾']).toBe('ㄍㄢ');
 });
+
+test('mergeDicts prefers overrides over both moedict and unihan', () => {
+  const moedict = new Map([['袋子', 'ㄉㄞˋㄗˇ']]);
+  const unihan = new Map([['袋子', 'ㄉㄞˋㄗˇ']]);
+  const overrides = { '袋子': 'ㄉㄞˋ˙ㄗ' };
+  const merged = mergeDicts(moedict, unihan, overrides);
+  expect(merged['袋子']).toBe('ㄉㄞˋ˙ㄗ');
+});

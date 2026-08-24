@@ -10,10 +10,11 @@ const outFile = join(outDir, 'zhuyin-dict.json');
 
 const moedictRaw = JSON.parse(readFileSync(join(rawDir, 'moedict-dict-concised.audio.json'), 'utf-8'));
 const unihanText = readFileSync(join(rawDir, 'unihan-kmandarin.txt'), 'utf-8');
+const overrides = JSON.parse(readFileSync(join(rawDir, 'overrides.json'), 'utf-8'));
 
 const moedict = parseMoedict(moedictRaw);
 const unihan = parseUnihanKMandarin(unihanText);
-const merged = mergeDicts(moedict, unihan);
+const merged = mergeDicts(moedict, unihan, overrides);
 
 mkdirSync(outDir, { recursive: true });
 writeFileSync(outFile, JSON.stringify(merged), 'utf-8');

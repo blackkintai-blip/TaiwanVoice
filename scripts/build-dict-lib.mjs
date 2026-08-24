@@ -29,9 +29,10 @@ export function parseUnihanKMandarin(text) {
   return dict;
 }
 
-export function mergeDicts(moedict, unihan) {
+export function mergeDicts(moedict, unihan, overrides = {}) {
   const merged = {};
   for (const [hanzi, zhuyin] of unihan) merged[hanzi] = zhuyin;
   for (const [hanzi, zhuyin] of moedict) merged[hanzi] = zhuyin;
+  for (const [hanzi, zhuyin] of Object.entries(overrides)) merged[hanzi] = zhuyin;
   return merged;
 }
