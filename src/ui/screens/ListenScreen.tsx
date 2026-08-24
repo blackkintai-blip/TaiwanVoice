@@ -2,8 +2,11 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Card } from '../../core/types';
 import { listCards, listTags } from '../../data/db';
 import { pickTaiwaneseVoice, playRepeated } from '../../audio/speech';
+import { startMicRecording, supportsMicRecording, type RecordingHandle } from '../../audio/recorder';
 import { loadPlaybackSettings } from '../../data/settings';
-import { EyeIcon, NextIcon, PlayIcon, PrevIcon, ReplayIcon } from '../icons';
+import { EyeIcon, MicIcon, NextIcon, PlayIcon, PrevIcon, ReplayIcon, StopIcon } from '../icons';
+
+type RecordingStatus = 'idle' | 'requesting' | 'recording' | 'recorded' | 'denied';
 
 type Order = 'sequential' | 'random';
 type Scope = 'both' | 'wordOnly' | 'exampleOnly';
@@ -28,6 +31,12 @@ export function ListenScreen() {
   const [continuous, setContinuous] = useState(false);
   const [playingIndex, setPlayingIndex] = useState(0);
   const sessionRef = useRef<{ stop: () => void } | null>(null);
+
+  const canRecord = useMemo(() => supportsMicRecording(), []);
+  const [recordingStatus, setRecordingStatus] = useState<RecordingStatus>('idle');
+  const [recordingUrl, setRecordingUrl] = useState<string | null>(null);
+  const recorderRef = useRef<RecordingHandle | null>(null);
+  const recordedAudioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     listCards().then(setCards);
@@ -62,6 +71,64 @@ export function ListenScreen() {
   }
 
   useEffect(() => stopPlayback, []);
+
+  function discardRecording() {
+    recorderRef.current?.stop();
+    recorderRef.current = null;
+    recordedAudioRef.current?.pause();
+    setRecordingUrl((url) => {
+      if (url) URL.revokeObjectURL(url);
+      return null;
+    });
+    setRecordingStatus((s) => (s === 'denied' ? s : 'idle'));
+  }
+
+  useEffect(() => discardRecording, []);
+
+  // Any change to which item is currently being listened to (a new card, or
+  // moving from the word to one of its examples within the same card)
+  // invalidates the in-progress or just-finished recording per spec: nothing
+  // is persisted, so a recording only ever applies to the single item it was
+  // made against.
+  useEffect(() => {
+    discardRecording();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [current?.id, playingIndex]);
+
+  async function toggleRecording() {
+    if (recordingStatus === 'recording' || recordingStatus === 'requesting') {
+      recorderRef.current?.stop();
+      return;
+    }
+    if (recordingStatus === 'denied') return;
+
+    discardRecording();
+    stopPlayback();
+    setContinuous(false);
+    setRecordingStatus('requesting');
+    try {
+      const handle = await startMicRecording();
+      recorderRef.current = handle;
+      setRecordingStatus('recording');
+      handle.result.then((rec) => {
+        if (recorderRef.current !== handle) return;
+        recorderRef.current = null;
+        setRecordingUrl(rec.url);
+        setRecordingStatus('recorded');
+      });
+    } catch {
+      recorderRef.current = null;
+      setRecordingStatus('denied');
+    }
+  }
+
+  function playRecording() {
+    if (!recordingUrl) return;
+    const audio = recordedAudioRef.current;
+    if (!audio) return;
+    audio.currentTime = 0;
+    audio.play();
+  }
 
   useEffect(() => {
     stopPlayback();
@@ -236,6 +303,37 @@ export function ListenScreen() {
           <NextIcon />
         </button>
       </div>
+
+      {canRecord && (
+        <div className="listen-screen__record">
+          {recordingStatus === 'denied' ? (
+            <span className="listen-screen__record-denied">マイクが使用できません</span>
+          ) : (
+            <>
+              <button
+                className={
+                  recordingStatus === 'recording' || recordingStatus === 'requesting'
+                    ? 'listen-screen__ctrl listen-screen__ctrl--recording'
+                    : 'listen-screen__ctrl'
+                }
+                onClick={toggleRecording}
+                aria-label={recordingStatus === 'recording' ? '録音を停止' : '発音を録音'}
+              >
+                {recordingStatus === 'recording' || recordingStatus === 'requesting' ? <StopIcon /> : <MicIcon />}
+              </button>
+              <button
+                className="listen-screen__ctrl"
+                onClick={playRecording}
+                disabled={recordingStatus !== 'recorded'}
+                aria-label="録音を再生"
+              >
+                <PlayIcon />
+              </button>
+            </>
+          )}
+          <audio ref={recordedAudioRef} src={recordingUrl ?? undefined} style={{ display: 'none' }} />
+        </div>
+      )}
     </div>
   );
 }

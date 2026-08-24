@@ -272,6 +272,11 @@ input, select, textarea { accent-color: var(--accent); }
   color: var(--accent); background: var(--accent-soft); border-color: var(--accent-border);
   touch-action: none; -webkit-touch-callout: none; user-select: none;
 }
+.listen-screen__ctrl:disabled { opacity: 0.35; }
+
+.listen-screen__record { display: flex; align-items: center; justify-content: center; gap: 16px; padding: 0 0 20px; flex-shrink: 0; }
+.listen-screen__ctrl--recording { color: var(--bg-deep); background: var(--danger); border-color: var(--danger); }
+.listen-screen__record-denied { color: var(--text-faint); font-size: 12.5px; }
 
 /* ---------- Quiz screen ---------- */
 

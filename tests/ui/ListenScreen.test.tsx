@@ -50,3 +50,109 @@ test('shows a counter and next/prev controls', async () => {
   fireEvent.click(screen.getByRole('button', { name: '前' }));
   expect(screen.getByText('1 / 2')).toBeInTheDocument();
 });
+
+class FakeTrack {
+  stopped = false;
+  stop() {
+    this.stopped = true;
+  }
+}
+
+class FakeStream {
+  tracks = [new FakeTrack()];
+  getTracks() {
+    return this.tracks;
+  }
+}
+
+class FakeMediaRecorder {
+  state: 'inactive' | 'recording' = 'inactive';
+  mimeType = 'audio/webm';
+  ondataavailable: ((e: { data: Blob }) => void) | null = null;
+  onstop: (() => void) | null = null;
+  constructor(public stream: FakeStream) {}
+  start() {
+    this.state = 'recording';
+  }
+  stop() {
+    if (this.state === 'inactive') return;
+    this.state = 'inactive';
+    this.ondataavailable?.({ data: new Blob(['x']) });
+    this.onstop?.();
+  }
+}
+
+describe('recording (聞く画面)', () => {
+  let getUserMedia: (constraints: MediaStreamConstraints) => Promise<MediaStream>;
+
+  beforeEach(() => {
+    URL.createObjectURL = (() => 'blob:fake-url') as typeof URL.createObjectURL;
+    URL.revokeObjectURL = (() => {}) as typeof URL.revokeObjectURL;
+    getUserMedia = async () => new FakeStream() as unknown as MediaStream;
+    Object.defineProperty(window, 'MediaRecorder', {
+      value: FakeMediaRecorder,
+      writable: true,
+      configurable: true,
+    });
+    Object.defineProperty(navigator, 'mediaDevices', {
+      value: { getUserMedia: (c: MediaStreamConstraints) => getUserMedia(c) },
+      writable: true,
+      configurable: true,
+    });
+  });
+
+  test('recording then stopping enables playback of the take', async () => {
+    await putCard(makeCard());
+    render(<ListenScreen />);
+    await waitFor(() => screen.getByRole('button', { name: '発音を録音' }));
+
+    expect(screen.getByRole('button', { name: '録音を再生' })).toBeDisabled();
+
+    fireEvent.click(screen.getByRole('button', { name: '発音を録音' }));
+    await waitFor(() => screen.getByRole('button', { name: '録音を停止' }));
+
+    fireEvent.click(screen.getByRole('button', { name: '録音を停止' }));
+    await waitFor(() => expect(screen.getByRole('button', { name: '録音を再生' })).toBeEnabled());
+  });
+
+  test('starting a recording turns off continuous playback', async () => {
+    await putCard(makeCard());
+    render(<ListenScreen />);
+    await waitFor(() => screen.getByRole('button', { name: '発音を録音' }));
+
+    const continuousCheckbox = screen.getByLabelText('自動連続再生') as HTMLInputElement;
+    fireEvent.click(continuousCheckbox);
+    expect(continuousCheckbox.checked).toBe(true);
+
+    fireEvent.click(screen.getByRole('button', { name: '発音を録音' }));
+    await waitFor(() => expect(continuousCheckbox.checked).toBe(false));
+  });
+
+  test('moving to another card discards the recording', async () => {
+    await putCard(makeCard({ id: 'a' }));
+    await putCard(makeCard({ id: 'b', hanzi: '謝謝' }));
+    render(<ListenScreen />);
+    await waitFor(() => screen.getByRole('button', { name: '発音を録音' }));
+
+    fireEvent.click(screen.getByRole('button', { name: '発音を録音' }));
+    await waitFor(() => screen.getByRole('button', { name: '録音を停止' }));
+    fireEvent.click(screen.getByRole('button', { name: '録音を停止' }));
+    await waitFor(() => expect(screen.getByRole('button', { name: '録音を再生' })).toBeEnabled());
+
+    fireEvent.click(screen.getByRole('button', { name: '次' }));
+    await waitFor(() => expect(screen.getByRole('button', { name: '録音を再生' })).toBeDisabled());
+  });
+
+  test('denied microphone permission hides the record button', async () => {
+    getUserMedia = async () => {
+      throw new DOMException('denied', 'NotAllowedError');
+    };
+    await putCard(makeCard());
+    render(<ListenScreen />);
+    await waitFor(() => screen.getByRole('button', { name: '発音を録音' }));
+
+    fireEvent.click(screen.getByRole('button', { name: '発音を録音' }));
+    await waitFor(() => screen.getByText('マイクが使用できません'));
+    expect(screen.queryByRole('button', { name: '発音を録音' })).not.toBeInTheDocument();
+  });
+});
