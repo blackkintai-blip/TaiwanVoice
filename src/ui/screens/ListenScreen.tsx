@@ -3,7 +3,7 @@ import type { Card } from '../../core/types';
 import { listCards, listTags } from '../../data/db';
 import { pickTaiwaneseVoice, playRepeated } from '../../audio/speech';
 import { startMicRecording, supportsMicRecording, type RecordingHandle } from '../../audio/recorder';
-import { loadPlaybackSettings } from '../../data/settings';
+import { loadListenSettings, loadPlaybackSettings, saveListenSettings } from '../../data/settings';
 import { EyeIcon, MicIcon, NextIcon, PlayIcon, PrevIcon, ReplayIcon, StopIcon } from '../icons';
 
 type RecordingStatus = 'idle' | 'requesting' | 'recording' | 'recorded' | 'denied';
@@ -24,11 +24,12 @@ export function ListenScreen() {
   const [cards, setCards] = useState<Card[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [activeTags, setActiveTags] = useState<string[]>([]);
-  const [order, setOrder] = useState<Order>('sequential');
-  const [scope, setScope] = useState<Scope>('both');
+  const initialListenSettings = useMemo(() => loadListenSettings(), []);
+  const [order, setOrder] = useState<Order>(initialListenSettings.order);
+  const [scope, setScope] = useState<Scope>(initialListenSettings.scope);
   const [index, setIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
-  const [continuous, setContinuous] = useState(false);
+  const [continuous, setContinuous] = useState(initialListenSettings.continuous);
   const [playingIndex, setPlayingIndex] = useState(0);
   const sessionRef = useRef<{ stop: () => void } | null>(null);
 
@@ -136,6 +137,10 @@ export function ListenScreen() {
     setIndex(0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scope, order, activeTags]);
+
+  useEffect(() => {
+    saveListenSettings({ order, scope, continuous });
+  }, [order, scope, continuous]);
 
   function play() {
     if (!current) return;

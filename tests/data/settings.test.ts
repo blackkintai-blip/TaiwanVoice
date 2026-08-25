@@ -1,4 +1,4 @@
-import { loadPlaybackSettings, savePlaybackSettings } from '../../src/data/settings';
+import { loadListenSettings, loadPlaybackSettings, saveListenSettings, savePlaybackSettings } from '../../src/data/settings';
 
 beforeEach(() => localStorage.clear());
 
@@ -14,4 +14,18 @@ test('save then load round-trips', () => {
 test('falls back to defaults on corrupt stored data', () => {
   localStorage.setItem('ty-bopomo:playback-settings', 'not json');
   expect(loadPlaybackSettings()).toEqual({ repeatCount: 1, gapMs: 1500, rate: 1.0 });
+});
+
+test('listen settings return defaults when nothing is saved', () => {
+  expect(loadListenSettings()).toEqual({ order: 'sequential', scope: 'both', continuous: false });
+});
+
+test('listen settings save then load round-trips', () => {
+  saveListenSettings({ order: 'random', scope: 'wordOnly', continuous: true });
+  expect(loadListenSettings()).toEqual({ order: 'random', scope: 'wordOnly', continuous: true });
+});
+
+test('listen settings fall back to defaults on corrupt stored data', () => {
+  localStorage.setItem('ty-bopomo:listen-settings', 'not json');
+  expect(loadListenSettings()).toEqual({ order: 'sequential', scope: 'both', continuous: false });
 });
