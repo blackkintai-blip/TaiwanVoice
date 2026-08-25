@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Card } from '../../core/types';
 import { listCards, listTags } from '../../data/db';
-import { SpeechQueue, pickTaiwaneseVoice } from '../../audio/speech';
+import { SpeechQueue, resolveTaiwaneseVoice } from '../../audio/speech';
 import { PlusIcon, SearchIcon, SpeakerIcon } from '../icons';
 
 export function ListScreen({ onOpenCard }: { onOpenCard: (id: string | null) => void }) {
@@ -30,8 +30,8 @@ export function ListScreen({ onOpenCard }: { onOpenCard: (id: string | null) => 
     [cards, query, activeTags],
   );
 
-  function speak(hanzi: string) {
-    const voice = pickTaiwaneseVoice(window.speechSynthesis.getVoices());
+  async function speak(hanzi: string) {
+    const voice = await resolveTaiwaneseVoice(window.speechSynthesis);
     const q = new SpeechQueue(window.speechSynthesis, voice);
     q.enqueue(hanzi);
     q.start();

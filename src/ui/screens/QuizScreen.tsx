@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import type { Card } from '../../core/types';
 import { grade, type Grade } from '../../core/srs';
 import { listCards, listTags, putCard } from '../../data/db';
-import { SpeechQueue, pickTaiwaneseVoice } from '../../audio/speech';
+import { SpeechQueue, resolveTaiwaneseVoice } from '../../audio/speech';
 import { SpeakerIcon } from '../icons';
 
 type Direction = 'hanziToMeaning' | 'meaningToHanzi' | 'audioToMeaning';
@@ -35,8 +35,8 @@ function buildItems(cards: Card[], scope: Scope): QuizItem[] {
   return items;
 }
 
-function speakText(hanzi: string) {
-  const voice = pickTaiwaneseVoice(window.speechSynthesis.getVoices());
+async function speakText(hanzi: string) {
+  const voice = await resolveTaiwaneseVoice(window.speechSynthesis);
   const q = new SpeechQueue(window.speechSynthesis, voice);
   q.enqueue(hanzi);
   q.start();

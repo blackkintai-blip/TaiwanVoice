@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Card } from '../../core/types';
 import { listCards, listTags } from '../../data/db';
-import { pickTaiwaneseVoice, playRepeated } from '../../audio/speech';
+import { playRepeated, resolveTaiwaneseVoice } from '../../audio/speech';
 import { startMicRecording, supportsMicRecording, type RecordingHandle } from '../../audio/recorder';
 import { loadListenSettings, loadPlaybackSettings, saveListenSettings } from '../../data/settings';
 import { EyeIcon, MicIcon, NextIcon, PlayIcon, PrevIcon, ReplayIcon, StopIcon } from '../icons';
@@ -32,6 +32,7 @@ export function ListenScreen() {
   const [continuous, setContinuous] = useState(initialListenSettings.continuous);
   const [playingIndex, setPlayingIndex] = useState(0);
   const sessionRef = useRef<{ stop: () => void } | null>(null);
+  const playTokenRef = useRef(0);
 
   const canRecord = useMemo(() => supportsMicRecording(), []);
   const [recordingStatus, setRecordingStatus] = useState<RecordingStatus>('idle');
@@ -67,6 +68,7 @@ export function ListenScreen() {
   const current = ordered[index];
 
   function stopPlayback() {
+    playTokenRef.current += 1;
     sessionRef.current?.stop();
     sessionRef.current = null;
   }
@@ -142,12 +144,16 @@ export function ListenScreen() {
     saveListenSettings({ order, scope, continuous });
   }, [order, scope, continuous]);
 
-  function play() {
+  async function play() {
     if (!current) return;
     stopPlayback();
     setPlayingIndex(0);
+    const token = playTokenRef.current;
     const settings = loadPlaybackSettings();
-    const voice = pickTaiwaneseVoice(window.speechSynthesis.getVoices());
+    const voice = await resolveTaiwaneseVoice(window.speechSynthesis);
+    // Something else (next/prev/stop, or another play() call) already
+    // superseded this one while we were waiting for the voice list.
+    if (playTokenRef.current !== token) return;
     const items =
       scope === 'wordOnly'
         ? [current.hanzi]

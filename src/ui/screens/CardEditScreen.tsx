@@ -4,7 +4,7 @@ import { newSrsState } from '../../core/srs';
 import { annotate } from '../../core/bopomofo';
 import { getCard, putCard, deleteCard, listTags } from '../../data/db';
 import { useDict } from '../../dict/useDict';
-import { SpeechQueue, pickTaiwaneseVoice } from '../../audio/speech';
+import { SpeechQueue, resolveTaiwaneseVoice } from '../../audio/speech';
 import { PlusIcon, SpeakerIcon } from '../icons';
 
 function todayStr(): string {
@@ -74,8 +74,8 @@ export function CardEditScreen({ cardId, onDone }: { cardId: string | null; onDo
     });
   }
 
-  function speak(text: string) {
-    const voice = pickTaiwaneseVoice(window.speechSynthesis.getVoices());
+  async function speak(text: string) {
+    const voice = await resolveTaiwaneseVoice(window.speechSynthesis);
     const q = new SpeechQueue(window.speechSynthesis, voice);
     q.enqueue(text);
     q.start();

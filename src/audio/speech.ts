@@ -5,6 +5,37 @@ export function pickTaiwaneseVoice(voices: SpeechSynthesisVoice[]): SpeechSynthe
   return hant ?? null;
 }
 
+// Most browsers load the voice list asynchronously; right after page load,
+// getVoices() can return [] until 'voiceschanged' fires. Calling it
+// synchronously at that point silently plays with the browser's default
+// (system-locale) voice instead of Chinese. This waits for the real list on
+// the first call; every call after that resolves synchronously since the
+// list is cached by the browser once loaded.
+export function getVoicesAsync(synth: SpeechSynthesis, timeoutMs = 1000): Promise<SpeechSynthesisVoice[]> {
+  const existing = synth.getVoices();
+  if (existing.length > 0) return Promise.resolve(existing);
+
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      synth.removeEventListener?.('voiceschanged', onChange);
+      resolve(synth.getVoices());
+    };
+    const onChange = () => finish();
+    synth.addEventListener?.('voiceschanged', onChange);
+    setTimeout(finish, timeoutMs);
+  });
+}
+
+export async function resolveTaiwaneseVoice(
+  synth: SpeechSynthesis,
+  timeoutMs = 1000,
+): Promise<SpeechSynthesisVoice | null> {
+  return pickTaiwaneseVoice(await getVoicesAsync(synth, timeoutMs));
+}
+
 const SPLIT_PATTERN = /[。！？，、；：\n]+/;
 
 export function splitIntoChunks(text: string): string[] {

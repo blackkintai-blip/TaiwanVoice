@@ -1,4 +1,4 @@
-import { pickTaiwaneseVoice, splitIntoChunks, SpeechQueue, playRepeated } from '../../src/audio/speech';
+import { pickTaiwaneseVoice, splitIntoChunks, SpeechQueue, playRepeated, getVoicesAsync } from '../../src/audio/speech';
 
 function makeVoice(lang: string, name = lang): SpeechSynthesisVoice {
   return { lang, name, voiceURI: name, default: false, localService: true } as SpeechSynthesisVoice;
@@ -21,6 +21,50 @@ test('pickTaiwaneseVoice never returns a zh-CN voice', () => {
 
 test('pickTaiwaneseVoice returns null when there is no voice list at all', () => {
   expect(pickTaiwaneseVoice([])).toBeNull();
+});
+
+function makeFakeVoiceSynth(initialVoices: SpeechSynthesisVoice[] = []) {
+  let voices = initialVoices;
+  const listeners: Array<() => void> = [];
+  const synth = {
+    getVoices: () => voices,
+    addEventListener: (event: string, cb: () => void) => {
+      if (event === 'voiceschanged') listeners.push(cb);
+    },
+    removeEventListener: (event: string, cb: () => void) => {
+      if (event !== 'voiceschanged') return;
+      const i = listeners.indexOf(cb);
+      if (i !== -1) listeners.splice(i, 1);
+    },
+  };
+  return {
+    synth: synth as unknown as SpeechSynthesis,
+    loadVoices: (v: SpeechSynthesisVoice[]) => {
+      voices = v;
+      listeners.slice().forEach((cb) => cb());
+    },
+  };
+}
+
+test('getVoicesAsync resolves immediately when voices are already loaded', async () => {
+  const { synth } = makeFakeVoiceSynth([makeVoice('zh-TW')]);
+  await expect(getVoicesAsync(synth)).resolves.toEqual([makeVoice('zh-TW')]);
+});
+
+test('getVoicesAsync waits for voiceschanged when the list starts empty', async () => {
+  const { synth, loadVoices } = makeFakeVoiceSynth([]);
+  const promise = getVoicesAsync(synth);
+  loadVoices([makeVoice('zh-TW')]);
+  await expect(promise).resolves.toEqual([makeVoice('zh-TW')]);
+});
+
+test('getVoicesAsync falls back after the timeout if voiceschanged never fires', async () => {
+  vi.useFakeTimers();
+  const { synth } = makeFakeVoiceSynth([]);
+  const promise = getVoicesAsync(synth, 1000);
+  vi.advanceTimersByTime(1000);
+  vi.useRealTimers();
+  await expect(promise).resolves.toEqual([]);
 });
 
 test('splitIntoChunks splits on Chinese punctuation and drops empty pieces', () => {
