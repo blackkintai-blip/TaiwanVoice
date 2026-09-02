@@ -50,3 +50,28 @@ test('tapping a row opens that card for editing', async () => {
   fireEvent.click(screen.getByText('你好'));
   expect(onOpenCard).toHaveBeenCalledWith('a');
 });
+
+const IMAGE = 'data:image/webp;base64,AAAA';
+
+test('the image button only appears for cards that have one', async () => {
+  await putCard(makeCard({ id: 'a', hanzi: '你好' }));
+  await putCard(makeCard({ id: 'b', hanzi: '謝謝', image: IMAGE }));
+  render(<ListScreen onOpenCard={() => {}} />);
+  await waitFor(() => expect(screen.getByLabelText('謝謝 の画像を表示')).toBeInTheDocument());
+  expect(screen.queryByLabelText('你好 の画像を表示')).not.toBeInTheDocument();
+});
+
+test('tapping the image button shows the image and tapping it again hides it', async () => {
+  const onOpenCard = vi.fn();
+  await putCard(makeCard({ id: 'b', hanzi: '謝謝', image: IMAGE }));
+  render(<ListScreen onOpenCard={onOpenCard} />);
+  await waitFor(() => expect(screen.getByLabelText('謝謝 の画像を表示')).toBeInTheDocument());
+
+  fireEvent.click(screen.getByLabelText('謝謝 の画像を表示'));
+  expect(screen.getByAltText('謝謝 の画像')).toHaveAttribute('src', IMAGE);
+  // Opening the image must not also open the card for editing.
+  expect(onOpenCard).not.toHaveBeenCalled();
+
+  fireEvent.click(screen.getByLabelText('画像を閉じる'));
+  expect(screen.queryByAltText('謝謝 の画像')).not.toBeInTheDocument();
+});

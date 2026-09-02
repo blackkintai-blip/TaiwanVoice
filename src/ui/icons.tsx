@@ -142,3 +142,13 @@ export function TabSettingsIcon(props: SVGProps<SVGSVGElement>) {
     </Icon>
   );
 }
+
+export function ImageIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <circle cx="8.5" cy="9.5" r="1.5" />
+      <path d="M4 17l4.5-4.5 3.5 3.5 3-2.5L20 18" />
+    </Icon>
+  );
+}

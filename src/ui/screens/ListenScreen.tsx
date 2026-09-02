@@ -4,7 +4,7 @@ import { listCards, listTags } from '../../data/db';
 import { playRepeated, resolveTaiwaneseVoice } from '../../audio/speech';
 import { startMicRecording, supportsMicRecording, type RecordingHandle } from '../../audio/recorder';
 import { loadListenSettings, loadPlaybackSettings, saveListenSettings } from '../../data/settings';
-import { EyeIcon, MicIcon, NextIcon, PlayIcon, PrevIcon, ReplayIcon, StopIcon } from '../icons';
+import { EyeIcon, ImageIcon, MicIcon, NextIcon, PlayIcon, PrevIcon, ReplayIcon, StopIcon } from '../icons';
 
 type RecordingStatus = 'idle' | 'requesting' | 'recording' | 'recorded' | 'denied';
 
@@ -29,7 +29,9 @@ export function ListenScreen() {
   const [scope, setScope] = useState<Scope>(initialListenSettings.scope);
   const [index, setIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
+  const [imageShown, setImageShown] = useState(false);
   const [continuous, setContinuous] = useState(initialListenSettings.continuous);
+  const [loop, setLoop] = useState(initialListenSettings.loop);
   const [playingIndex, setPlayingIndex] = useState(0);
   const sessionRef = useRef<{ stop: () => void } | null>(null);
   const playTokenRef = useRef(0);
@@ -98,6 +100,8 @@ export function ListenScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [current?.id, playingIndex]);
 
+  useEffect(() => setImageShown(false), [current?.id]);
+
   async function toggleRecording() {
     if (recordingStatus === 'recording' || recordingStatus === 'requesting') {
       recorderRef.current?.stop();
@@ -141,8 +145,8 @@ export function ListenScreen() {
   }, [scope, order, activeTags]);
 
   useEffect(() => {
-    saveListenSettings({ order, scope, continuous });
-  }, [order, scope, continuous]);
+    saveListenSettings({ order, scope, continuous, loop });
+  }, [order, scope, continuous, loop]);
 
   async function play() {
     if (!current) return;
@@ -166,7 +170,7 @@ export function ListenScreen() {
       gapMs: settings.gapMs,
       onItemStart: setPlayingIndex,
       onAllDone: () => {
-        if (continuous) setIndex((i) => Math.min(ordered.length - 1, i + 1));
+        if (continuous) setIndex((i) => (loop ? (i + 1) % ordered.length : Math.min(ordered.length - 1, i + 1)));
       },
     });
   }
@@ -184,13 +188,13 @@ export function ListenScreen() {
   function next() {
     stopPlayback();
     setPlayingIndex(0);
-    setIndex((i) => Math.min(ordered.length - 1, i + 1));
+    setIndex((i) => (loop ? (i + 1) % ordered.length : Math.min(ordered.length - 1, i + 1)));
   }
 
   function prev() {
     stopPlayback();
     setPlayingIndex(0);
-    setIndex((i) => Math.max(0, i - 1));
+    setIndex((i) => (loop ? (i - 1 + ordered.length) % ordered.length : Math.max(0, i - 1)));
   }
 
   if (ordered.length === 0) {
@@ -228,6 +232,15 @@ export function ListenScreen() {
             />
             自動連続再生
           </label>
+          <label className={loop ? 'pill pill--toggled' : 'pill'}>
+            <input
+              type="checkbox"
+              checked={loop}
+              onChange={(e) => setLoop(e.target.checked)}
+              style={{ display: 'none' }}
+            />
+            ループ再生
+          </label>
         </div>
       </div>
 
@@ -261,11 +274,23 @@ export function ListenScreen() {
       )}
 
       <div className="listen-screen__stage">
-        <button className="listen-screen__play" onClick={play} aria-label="再生">
-          <PlayIcon />
-        </button>
+        <div className="listen-screen__transport">
+          <button className="listen-screen__ctrl listen-screen__ctrl--nav" onClick={prev} aria-label="前">
+            <PrevIcon />
+          </button>
+          <button className="listen-screen__play" onClick={play} aria-label="再生">
+            <PlayIcon />
+          </button>
+          <button className="listen-screen__ctrl listen-screen__ctrl--nav" onClick={next} aria-label="次">
+            <NextIcon />
+          </button>
+        </div>
 
-        {revealed && current ? (
+        {imageShown && current?.image ? (
+          <div className="listen-screen__image">
+            <img src={current.image} alt={`${current.hanzi} の画像`} />
+          </div>
+        ) : revealed && current ? (
           <div className="listen-screen__reveal">
             {(() => {
               const item =
@@ -290,9 +315,6 @@ export function ListenScreen() {
       </div>
 
       <div className="listen-screen__controls">
-        <button className="listen-screen__ctrl" onClick={prev} aria-label="前">
-          <PrevIcon />
-        </button>
         <button className="listen-screen__ctrl" onClick={play} aria-label="もう一度">
           <ReplayIcon />
         </button>
@@ -333,9 +355,22 @@ export function ListenScreen() {
         >
           <EyeIcon />
         </button>
-        <button className="listen-screen__ctrl" onClick={next} aria-label="次">
-          <NextIcon />
-        </button>
+        {current?.image && (
+          <button
+            className="listen-screen__ctrl listen-screen__ctrl--sm listen-screen__ctrl--eye"
+            aria-label="画像を見る"
+            onPointerDown={(e) => {
+              e.preventDefault();
+              setImageShown(true);
+            }}
+            onPointerUp={() => setImageShown(false)}
+            onPointerLeave={() => setImageShown(false)}
+            onPointerCancel={() => setImageShown(false)}
+            onContextMenu={(e) => e.preventDefault()}
+          >
+            <ImageIcon />
+          </button>
+        )}
       </div>
 
       {canRecord && recordingStatus === 'denied' && (

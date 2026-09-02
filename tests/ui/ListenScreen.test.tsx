@@ -17,6 +17,7 @@ function makeCard(overrides: Partial<Card> = {}): Card {
 beforeEach(async () => {
   const db = await openDb();
   await db.clear('cards');
+  localStorage.clear();
   Object.defineProperty(window, 'speechSynthesis', {
     value: { getVoices: () => [], speak: () => {}, cancel: () => {}, addEventListener: () => {} },
     writable: true,
@@ -155,4 +156,53 @@ describe('recording (聞く画面)', () => {
     await waitFor(() => screen.getByText('マイクが使用できません'));
     expect(screen.queryByRole('button', { name: '発音を録音' })).not.toBeInTheDocument();
   });
+});
+
+test('the image is shown only while its button is held', async () => {
+  const image = 'data:image/webp;base64,AAAA';
+  await putCard(makeCard({ image }));
+  render(<ListenScreen />);
+  await waitFor(() => screen.getByRole('button', { name: '再生' }));
+
+  expect(screen.queryByAltText('你好 の画像')).not.toBeInTheDocument();
+
+  const button = screen.getByRole('button', { name: '画像を見る' });
+  fireEvent.pointerDown(button);
+  expect(screen.getByAltText('你好 の画像')).toHaveAttribute('src', image);
+
+  fireEvent.pointerUp(button);
+  expect(screen.queryByAltText('你好 の画像')).not.toBeInTheDocument();
+});
+
+test('no image button for a card without an image', async () => {
+  await putCard(makeCard());
+  render(<ListenScreen />);
+  await waitFor(() => screen.getByRole('button', { name: '再生' }));
+  expect(screen.queryByRole('button', { name: '画像を見る' })).not.toBeInTheDocument();
+});
+
+test('loop playback wraps from the last card back to the first', async () => {
+  await putCard(makeCard({ id: 'a', hanzi: '你好' }));
+  await putCard(makeCard({ id: 'b', hanzi: '謝謝' }));
+  render(<ListenScreen />);
+  await waitFor(() => screen.getByText('1 / 2'));
+
+  fireEvent.click(screen.getByLabelText('ループ再生'));
+  fireEvent.click(screen.getByRole('button', { name: '次' }));
+  expect(screen.getByText('2 / 2')).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: '次' }));
+  expect(screen.getByText('1 / 2')).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: '前' }));
+  expect(screen.getByText('2 / 2')).toBeInTheDocument();
+});
+
+test('without loop the last card stays put', async () => {
+  await putCard(makeCard({ id: 'a', hanzi: '你好' }));
+  await putCard(makeCard({ id: 'b', hanzi: '謝謝' }));
+  render(<ListenScreen />);
+  await waitFor(() => screen.getByText('1 / 2'));
+
+  fireEvent.click(screen.getByRole('button', { name: '次' }));
+  fireEvent.click(screen.getByRole('button', { name: '次' }));
+  expect(screen.getByText('2 / 2')).toBeInTheDocument();
 });

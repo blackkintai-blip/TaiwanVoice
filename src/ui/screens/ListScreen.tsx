@@ -2,13 +2,14 @@ import { useEffect, useMemo, useState } from 'react';
 import type { Card } from '../../core/types';
 import { listCards, listTags } from '../../data/db';
 import { SpeechQueue, resolveTaiwaneseVoice } from '../../audio/speech';
-import { PlusIcon, SearchIcon, SpeakerIcon } from '../icons';
+import { ImageIcon, PlusIcon, SearchIcon, SpeakerIcon } from '../icons';
 
 export function ListScreen({ onOpenCard }: { onOpenCard: (id: string | null) => void }) {
   const [cards, setCards] = useState<Card[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [query, setQuery] = useState('');
   const [activeTags, setActiveTags] = useState<string[]>([]);
+  const [shownImage, setShownImage] = useState<Card | null>(null);
 
   useEffect(() => {
     listCards().then(setCards);
@@ -81,6 +82,18 @@ export function ListScreen({ onOpenCard }: { onOpenCard: (id: string | null) => 
                   </div>
                 )}
               </div>
+              {card.image && (
+                <button
+                  className="list-screen__image-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShownImage(card);
+                  }}
+                  aria-label={`${card.hanzi} の画像を表示`}
+                >
+                  <ImageIcon />
+                </button>
+              )}
               <button
                 className="list-screen__speak"
                 onClick={(e) => {
@@ -94,6 +107,22 @@ export function ListScreen({ onOpenCard }: { onOpenCard: (id: string | null) => 
             </li>
           ))}
         </ul>
+      )}
+
+      {shownImage?.image && (
+        <div
+          className="image-overlay"
+          role="button"
+          tabIndex={0}
+          aria-label="画像を閉じる"
+          onClick={() => setShownImage(null)}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') setShownImage(null);
+          }}
+        >
+          <img src={shownImage.image} alt={`${shownImage.hanzi} の画像`} />
+          <div className="image-overlay__caption">{shownImage.hanzi}</div>
+        </div>
       )}
 
       <button className="list-screen__add" onClick={() => onOpenCard(null)} aria-label="＋">

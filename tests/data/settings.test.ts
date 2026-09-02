@@ -17,15 +17,15 @@ test('falls back to defaults on corrupt stored data', () => {
 });
 
 test('listen settings return defaults when nothing is saved', () => {
-  expect(loadListenSettings()).toEqual({ order: 'sequential', scope: 'both', continuous: false });
+  expect(loadListenSettings()).toEqual({ order: 'sequential', scope: 'both', continuous: false, loop: false });
 });
 
 test('listen settings save then load round-trips', () => {
-  saveListenSettings({ order: 'random', scope: 'wordOnly', continuous: true });
-  expect(loadListenSettings()).toEqual({ order: 'random', scope: 'wordOnly', continuous: true });
+  saveListenSettings({ order: 'random', scope: 'wordOnly', continuous: true, loop: true });
+  expect(loadListenSettings()).toEqual({ order: 'random', scope: 'wordOnly', continuous: true, loop: true });
 });
 
 test('listen settings fall back to defaults on corrupt stored data', () => {
   localStorage.setItem('ty-bopomo:listen-settings', 'not json');
-  expect(loadListenSettings()).toEqual({ order: 'sequential', scope: 'both', continuous: false });
+  expect(loadListenSettings()).toEqual({ order: 'sequential', scope: 'both', continuous: false, loop: false });
 });

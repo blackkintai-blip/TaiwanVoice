@@ -21,6 +21,8 @@ export type Card = {
   meaning: string;
   tags: string[];
   note: string;
+  /** Mnemonic image for the word, stored inline as a data URL. */
+  image?: string;
   examples: Example[];
   srs: SrsState;
   createdAt: string; // ISO 8601

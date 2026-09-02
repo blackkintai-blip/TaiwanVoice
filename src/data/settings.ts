@@ -17,10 +17,10 @@ export function savePlaybackSettings(settings: PlaybackSettings, storage: Storag
   storage.setItem(KEY, JSON.stringify(settings));
 }
 
-export type ListenSettings = { order: 'sequential' | 'random'; scope: 'both' | 'wordOnly' | 'exampleOnly'; continuous: boolean };
+export type ListenSettings = { order: 'sequential' | 'random'; scope: 'both' | 'wordOnly' | 'exampleOnly'; continuous: boolean; loop: boolean };
 
 const LISTEN_KEY = 'ty-bopomo:listen-settings';
-const LISTEN_DEFAULTS: ListenSettings = { order: 'sequential', scope: 'both', continuous: false };
+const LISTEN_DEFAULTS: ListenSettings = { order: 'sequential', scope: 'both', continuous: false, loop: false };
 
 export function loadListenSettings(storage: Storage = window.localStorage): ListenSettings {
   const raw = storage.getItem(LISTEN_KEY);

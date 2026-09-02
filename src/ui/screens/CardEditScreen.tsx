@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Card, Example } from '../../core/types';
 import { newSrsState } from '../../core/srs';
 import { annotate } from '../../core/bopomofo';
 import { getCard, putCard, deleteCard, listTags } from '../../data/db';
 import { useDict } from '../../dict/useDict';
 import { SpeechQueue, resolveTaiwaneseVoice } from '../../audio/speech';
-import { PlusIcon, SpeakerIcon } from '../icons';
+import { ImageIcon, PlusIcon, SpeakerIcon } from '../icons';
+import { fileToImageDataUrl } from '../../core/image';
 
 function todayStr(): string {
   return new Date().toISOString().slice(0, 10);
@@ -27,6 +28,8 @@ export function CardEditScreen({ cardId, onDone }: { cardId: string | null; onDo
   const [card, setCard] = useState<Card>(emptyCard());
   const [allTags, setAllTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
+  const [imageError, setImageError] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (cardId) {
@@ -72,6 +75,17 @@ export function CardEditScreen({ cardId, onDone }: { cardId: string | null; onDo
       examples[index] = next;
       return { ...c, examples };
     });
+  }
+
+  async function pickImage(file: File | undefined) {
+    if (!file) return;
+    setImageError(false);
+    try {
+      const image = await fileToImageDataUrl(file);
+      setCard((c) => ({ ...c, image }));
+    } catch {
+      setImageError(true);
+    }
   }
 
   async function speak(text: string) {
@@ -150,6 +164,44 @@ export function CardEditScreen({ cardId, onDone }: { cardId: string | null; onDo
           </div>
         )}
       </div>
+      <div className="card-edit__field">
+        画像
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          style={{ display: 'none' }}
+          onChange={(e) => {
+            pickImage(e.target.files?.[0]);
+            e.target.value = '';
+          }}
+        />
+        {card.image ? (
+          <div className="card-edit__image">
+            <img src={card.image} alt="" />
+            <div className="card-edit__image-actions">
+              <button type="button" className="ghost-btn" onClick={() => fileInputRef.current?.click()}>
+                変更
+              </button>
+              <button type="button" className="ghost-btn" onClick={() => setCard((c) => ({ ...c, image: undefined }))}>
+                画像を削除
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            type="button"
+            className="ghost-btn"
+            onClick={() => fileInputRef.current?.click()}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start' }}
+          >
+            <ImageIcon style={{ width: 15, height: 15 }} />
+            画像を選ぶ
+          </button>
+        )}
+        {imageError && <div className="card-edit__image-error">画像を読み込めませんでした</div>}
+      </div>
+
       <label>
         メモ
         <textarea value={card.note} onChange={(e) => setCard((c) => ({ ...c, note: e.target.value }))} />
